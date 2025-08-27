@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight } from 'lucide-react';
+import axios from "axios";
 
 const AddSkill = () => {
   // Mock user for demo
   const user = { id: 1 };
-  
+
   const [form, setForm] = useState({
     skill_name: '',
     category: '',
@@ -14,7 +15,7 @@ const AddSkill = () => {
     years_experience: 1,
     skill_photo: null
   });
-  
+
   const [preview, setPreview] = useState('');
   const [status, setStatus] = useState({ error: '', success: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,15 +66,15 @@ const AddSkill = () => {
   const validateFile = (file) => {
     const maxSize = 5 * 1024 * 1024; // 5MB
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    
+
     if (file.size > maxSize) {
       return 'File size should be less than 5MB';
     }
-    
+
     if (!allowedTypes.includes(file.type)) {
       return 'Please upload a valid image file (JPEG, PNG, or WebP)';
     }
-    
+
     return null;
   };
 
@@ -138,10 +139,15 @@ const AddSkill = () => {
       }
 
       // Simulate API call with delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      const res = await axios.post(
+        "https://muterianc.pythonanywhere.com//api/add_skill", // replace with your backend URL
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+
+
       setStatus({ success: 'Skill added successfully! 🎉' });
-      
+
       // Reset form
       setForm({
         skill_name: '',
@@ -205,16 +211,16 @@ const AddSkill = () => {
               {progress}%
             </span>
           </div>
-          
+
           <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`absolute left-0 top-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-500 ease-out rounded-full`}
               style={{ width: `${progress}%` }}
             >
               <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
             </div>
           </div>
-          
+
           {progress === 100 && (
             <div className="mt-3 flex items-center gap-2 text-green-600">
               <CheckCircle className="w-4 h-4" />
@@ -257,7 +263,7 @@ const AddSkill = () => {
                 </div>
                 Basic Information
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
@@ -322,7 +328,7 @@ const AddSkill = () => {
                 </div>
                 Skill Details
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">Difficulty Level</label>
@@ -350,15 +356,15 @@ const AddSkill = () => {
                         <button
                           key={star}
                           type="button"
-                          onClick={() => setForm({...form, proficiency: star})}
+                          onClick={() => setForm({ ...form, proficiency: star })}
                           className="p-1 focus:outline-none transition-all duration-200 transform hover:scale-125"
                           aria-label={`Rate ${star} star`}
                         >
                           <Star
                             size={24}
                             className={
-                              star <= form.proficiency 
-                                ? 'text-yellow-400 fill-current drop-shadow-sm' 
+                              star <= form.proficiency
+                                ? 'text-yellow-400 fill-current drop-shadow-sm'
                                 : 'text-gray-300 hover:text-yellow-300'
                             }
                           />
@@ -395,19 +401,19 @@ const AddSkill = () => {
                 Visual Representation
                 <span className="text-sm text-gray-500 ml-2">(Optional)</span>
               </h2>
-              
+
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-700">Skill Photo</label>
                 <p className="text-sm text-gray-500">
                   Upload an image that represents your skill (optional, max 5MB)
                 </p>
-                
+
                 {preview ? (
                   <div className="relative group">
-                    <img 
-                      src={preview} 
-                      alt="Preview" 
-                      className="h-64 w-full object-cover rounded-2xl border-2 border-gray-200 shadow-lg" 
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="h-64 w-full object-cover rounded-2xl border-2 border-gray-200 shadow-lg"
                     />
                     <button
                       type="button"
@@ -463,7 +469,7 @@ const AddSkill = () => {
                   </div>
                 )}
               </button>
-              
+
               {progress < 50 && (
                 <p className="text-center text-sm text-gray-500 mt-2">
                   Fill in at least 50% of the form to enable submission
