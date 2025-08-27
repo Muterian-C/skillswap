@@ -8,6 +8,20 @@ const Messages = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [receiverUsername, setReceiverUsername] = useState("");
+
+  // Fetch receiver's username
+  const fetchReceiverUsername = async () => {
+    try {
+      const res = await axios.get(
+        `https://muterianc.pythonanywhere.com/api/user/${receiverId}`
+      );
+      setReceiverUsername(res.data.username || `User ${receiverId}`);
+    } catch (err) {
+      console.error("Error fetching receiver username:", err);
+      setReceiverUsername(`User ${receiverId}`); // Fallback to ID if error
+    }
+  };
 
   // Fetch conversation
   const fetchMessages = async () => {
@@ -22,9 +36,11 @@ const Messages = () => {
     }
   };
 
-  // Auto-refresh messages every 5 seconds
+  // Fetch receiver username and messages on component mount
   useEffect(() => {
+    fetchReceiverUsername();
     fetchMessages();
+    
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
   }, [receiverId]);
@@ -48,7 +64,7 @@ const Messages = () => {
 
   return (
     <div className="chat-container" style={{ maxWidth: "600px", margin: "auto" }}>
-      <h2>Chat with User {receiverId}</h2>
+      <h2>Chat with {receiverUsername}</h2>
 
       <div className="chat-box" style={{ border: "1px solid #ddd", padding: "10px", height: "400px", overflowY: "auto" }}>
         {messages.length === 0 ? (
