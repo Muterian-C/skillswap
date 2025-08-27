@@ -48,7 +48,12 @@ const Navbar = () => {
 
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
-    // You can add navigation logic here based on notification type
+    
+    // Navigate to chat if it's a message notification with a sender_id
+    if (notification.sender_id) {
+      navigate(`/messages/${notification.sender_id}`);
+    }
+    
     setIsNotificationOpen(false);
   };
 
