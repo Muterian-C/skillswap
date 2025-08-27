@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook
-import socket from "../socket";
+import { useNavigate } from 'react-router-dom';
+
 
 
 const Skills = () => {
@@ -11,11 +12,15 @@ const Skills = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
+
 
   // Get authentication state from context
   const { user, token } = useAuth();
-const currentUser = user;          // alias to match existing code
-const isAuthenticated = !!user;    // true if logged in
+  const currentUser = user;          // alias to match existing code
+  const isAuthenticated = !!user;    // true if logged in
+
+  
 
 
   useEffect(() => {
@@ -169,7 +174,7 @@ const isAuthenticated = !!user;    // true if logged in
             )}
             {skill.difficulty && (
               <span className={`badge position-absolute top-0 end-0 m-2 ${skill.difficulty === 'beginner' ? 'bg-success' :
-                  skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
+                skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
                 }`}>
                 {skill.difficulty}
               </span>
@@ -222,14 +227,8 @@ const isAuthenticated = !!user;    // true if logged in
                       return;
                     }
 
-                    // join the chat room with skill owner
-                    socket.emit("join", {
-                      room: `chat_${skill.user_id}`,
-                      username: user.username,
-                    });
-
-                    // navigate to the chat page
-                    window.location.href = `/chat/${skill.user_id}`;
+                    // 👉 Navigate to messages page for this skill owner
+                    navigate(`/messages/${skill.user_id}`);
                   }}
                 >
                   💬 Contact
@@ -315,7 +314,7 @@ const isAuthenticated = !!user;    // true if logged in
       ) : (
         <EmptyState />
       )}
-      <footer/>
+      <footer />
     </div>
   );
 };

@@ -11,9 +11,8 @@ import Navbar from './components/Navbar';
 import Skills from './components/Skills';
 import Profile from './components/Profile';
 import ProtectedRoute from './context/ProtectedRoute';  // ⬅️ import
-
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Chat from "./components/chat";
+import Messages from "./components/chat";
 
 function App() {
   return (
@@ -25,7 +24,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/signin" element={<Signin />} />
-            <Route path="/chat/:userId" element={<Chat />} />
+            <Route path="/messages/:receiverId" element={<Messages />} />
             <Route 
               path="/addskills" 
               element={
