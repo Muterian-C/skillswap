@@ -1,12 +1,11 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-
 const Messages = () => {
-  const { receiverId } = useParams(); // receiver id from URL
-  const { user } = useAuth(); // logged-in user
+  const { receiverId } = useParams();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
@@ -14,7 +13,7 @@ const Messages = () => {
   const fetchMessages = async () => {
     try {
       const res = await axios.get(
-        `https://muterianc.pythonanywhere.com//api/get_messages/${receiverId}`,
+        `https://muterianc.pythonanywhere.com/api/get_messages/${receiverId}`,
         { params: { user_id: user.id } }
       );
       setMessages(res.data.messages);
@@ -23,24 +22,25 @@ const Messages = () => {
     }
   };
 
-  // Load messages on mount
+  // Auto-refresh messages every 5 seconds
   useEffect(() => {
     fetchMessages();
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
   }, [receiverId]);
 
-  // Send new message
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
     try {
-      await axios.post("https://muterianc.pythonanywhere.com//api/send_message", {
+      await axios.post("https://muterianc.pythonanywhere.com/api/send_message", {
         sender_id: user.id,
         receiver_id: receiverId,
         message: newMessage,
       });
       setNewMessage("");
-      fetchMessages(); // refresh
+      fetchMessages(); // refresh messages
     } catch (err) {
       console.error("Error sending message:", err);
     }
@@ -51,38 +51,55 @@ const Messages = () => {
       <h2>Chat with User {receiverId}</h2>
 
       <div className="chat-box" style={{ border: "1px solid #ddd", padding: "10px", height: "400px", overflowY: "auto" }}>
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              textAlign: msg.sender_id === user.id ? "right" : "left",
-              margin: "5px 0",
-            }}
-          >
-            <span
+        {messages.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#666" }}>No messages yet</p>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
               style={{
-                background: msg.sender_id === user.id ? "#dcf8c6" : "#fff",
-                padding: "8px 12px",
-                borderRadius: "15px",
-                display: "inline-block",
+                textAlign: msg.sender_id === user.id ? "right" : "left",
+                margin: "10px 0",
               }}
             >
-              {msg.message}
-            </span>
-          </div>
-        ))}
+              <div
+                style={{
+                  background: msg.sender_id === user.id ? "#dcf8c6" : "#f1f0f0",
+                  padding: "8px 12px",
+                  borderRadius: "15px",
+                  display: "inline-block",
+                  maxWidth: "70%",
+                }}
+              >
+                <p style={{ margin: 0 }}>{msg.message}</p>
+                <small style={{ fontSize: "10px", color: "#666" }}>
+                  {new Date(msg.created_at).toLocaleTimeString()}
+                </small>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
-      <form onSubmit={handleSend} style={{ marginTop: "10px", display: "flex" }}>
+      <form onSubmit={handleSend} style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type your message..."
-          className="flex-grow"
-          style={{ flex: 1, padding: "8px" }}
+          style={{ flex: 1, padding: "10px", borderRadius: "20px", border: "1px solid #ddd" }}
         />
-        <button type="submit" style={{ padding: "8px 16px" }}>
+        <button 
+          type="submit" 
+          style={{ 
+            padding: "10px 20px", 
+            borderRadius: "20px", 
+            border: "none", 
+            background: "#007bff", 
+            color: "white",
+            cursor: "pointer"
+          }}
+        >
           Send
         </button>
       </form>
