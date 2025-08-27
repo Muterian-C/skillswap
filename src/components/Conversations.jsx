@@ -16,12 +16,12 @@ const Conversations = () => {
 
   const fetchConversations = async () => {
     if (!user) return;
-    
+
     try {
       const res = await axios.get(
         `https://muterianc.pythonanywhere.com/api/conversations/${user.id}`
       );
-      
+
       if (res.data.success) {
         setConversations(res.data.conversations || []);
       }
@@ -34,12 +34,12 @@ const Conversations = () => {
 
   const getLastMessageTime = (timestamp) => {
     if (!timestamp) return '';
-    
+
     const now = new Date();
     const messageTime = new Date(timestamp);
     const diffInHours = (now - messageTime) / (1000 * 60 * 60);
     const diffInDays = Math.floor(diffInHours / 24);
-    
+
     if (diffInHours < 1) {
       return 'now';
     } else if (diffInHours < 24) {
@@ -148,8 +148,8 @@ const Conversations = () => {
                   {/* Avatar */}
                   <div className={`w-14 h-14 bg-gradient-to-br ${getAvatarGradient(conversation.user_id)} rounded-full flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-200`}>
                     {conversation.avatar ? (
-                      <img 
-                        src={conversation.avatar} 
+                      <img
+                        src={conversation.avatar}
                         alt={conversation.username}
                         className="w-full h-full rounded-full object-cover"
                       />
@@ -159,7 +159,7 @@ const Conversations = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Content */}
                   <div className="ml-4 flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
@@ -173,7 +173,7 @@ const Conversations = () => {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-gray-600 truncate pr-4 leading-relaxed">
                         {conversation.last_message || (
@@ -188,8 +188,10 @@ const Conversations = () => {
 
                   {/* Unread indicator (if you have unread count) */}
                   {conversation.unread_count > 0 && (
-                    <div className="absolute right-2 top-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="absolute right-8 top-4">
+                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-semibold">
+                        {conversation.unread_count > 9 ? '9+' : conversation.unread_count}
+                      </div>
                     </div>
                   )}
                 </Link>
