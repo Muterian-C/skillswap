@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, User, Home, PlusSquare, Search, Menu, X, Bell } from 'lucide-react';
+import { LogOut, User, Home, PlusSquare, Search, Menu, X, Bell, MessageCircle } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { useNotifications } from '../context/NotificationContext';
 
@@ -108,6 +108,14 @@ const Navbar = () => {
                   <PlusSquare className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                   Add Skill
                   <div className="absolute inset-0 bg-gradient-to-r from-pink-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                </Link>
+                <Link
+                  to="/conversations"
+                  className="group inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200 relative overflow-hidden"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                  Messages
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
                 </Link>
               </div>
             )}
@@ -259,6 +267,14 @@ const Navbar = () => {
             >
               <PlusSquare className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               Add Skill
+            </Link>
+            <Link
+              to="/conversations"
+              onClick={closeMobileMenu}
+              className="group flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200"
+            >
+              <MessageCircle className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              Messages
             </Link>
             
             {/* Mobile user info and logout */}

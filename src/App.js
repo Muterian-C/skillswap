@@ -14,6 +14,7 @@ import ProtectedRoute from './context/ProtectedRoute';  // ⬅️ import
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Messages from "./components/chat";
 import { NotificationProvider } from './context/NotificationContext';
+import Conversations from "./components/Conversations";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/signin" element={<Signin />} />
+            <Route path="/conversations" element={<Conversations />} />
             <Route path="/messages/:receiverId" element={<Messages />} />
             <Route 
               path="/addskills" 
