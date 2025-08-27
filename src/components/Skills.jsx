@@ -20,7 +20,7 @@ const Skills = () => {
   const currentUser = user;          // alias to match existing code
   const isAuthenticated = !!user;    // true if logged in
 
-  
+
 
 
   useEffect(() => {
@@ -227,7 +227,13 @@ const Skills = () => {
                       return;
                     }
 
-                    // 👉 Navigate to messages page for this skill owner
+                    // Check if user_id exists before navigating
+                    if (!skill.user_id) {
+                      console.error("Cannot contact: user_id is undefined", skill);
+                      alert("Sorry, cannot contact this user at the moment.");
+                      return;
+                    }
+
                     navigate(`/messages/${skill.user_id}`);
                   }}
                 >
