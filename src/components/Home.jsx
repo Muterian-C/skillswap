@@ -101,7 +101,7 @@ const Home = () => {
         {/* WHY CHOOSE SECTION */}
         <section className="container my-5 py-5">
           <div className="row text-center">
-            <h2 className="display-5 fw-bold mb-4">Why Choose SkillSwap?</h2>
+            <h2 className="display-5 fw-bold mb-4">Why Choose Skill_Swap?</h2>
             <p className="text-muted mb-5">Discover the power of peer-to-peer learning</p>
 
             <div className="col-md-4 mb-4">
