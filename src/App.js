@@ -13,10 +13,12 @@ import Profile from './components/Profile';
 import ProtectedRoute from './context/ProtectedRoute';  // ⬅️ import
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Messages from "./components/chat";
+import { NotificationProvider } from './context/NotificationContext';
 
 function App() {
   return (
     <AuthProvider>
+      <NotificationProvider>
       <Router>
         <div>
           {/* <Navbar /> */}
@@ -45,6 +47,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
