@@ -1,11 +1,12 @@
 import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
+
 
 const Messages = () => {
   const { receiverId } = useParams(); // receiver id from URL
-  const { user } = useContext(AuthContext); // logged-in user
+  const { user } = useAuth(); // logged-in user
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
