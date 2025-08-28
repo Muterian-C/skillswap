@@ -109,8 +109,10 @@ const Conversations = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div>
       <Navbar />
+    <div className="min-h-screen bg-gray-50 py-6">
+      
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
           {/* Header */}
@@ -212,6 +214,7 @@ const Conversations = () => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

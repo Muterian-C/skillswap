@@ -128,6 +128,8 @@ const Skills = () => {
     const isOwnSkill = currentUser && skill.user_id === currentUser.id;
 
     return (
+      <div>
+        <Navbar />
       <div
         className="col-md-4 mb-4"
         style={{
@@ -136,7 +138,7 @@ const Skills = () => {
           transition: `all 0.6s ease ${index * 0.1}s`
         }}
       >
-        <Navbar />
+        
         <div
           className="card shadow-sm h-100 border-0"
           style={{
@@ -253,6 +255,7 @@ const Skills = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     );
   };

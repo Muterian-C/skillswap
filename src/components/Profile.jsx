@@ -79,9 +79,12 @@ const Profile = () => {
   if (!user) return null;
 
   return (
+    <div>
+      <Navbar />
+      
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Navbar />
+        
         {/* Profile Header */}
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="px-6 py-8 sm:px-10 sm:py-12">
@@ -236,6 +239,7 @@ const Profile = () => {
         
         {/* ... keep the rest of your Skills UI the same ... */}
       </div>
+    </div>
     </div>
   );
 };
