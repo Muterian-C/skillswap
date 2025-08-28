@@ -77,11 +77,12 @@ const Navbar = () => {
             <Link to="/" className="flex items-center group">
               <div className="relative">
                 <img
-                  src="/skillswap-logo.png"   // put your logo file in /public folder
+                  src="/skillswap-logo.png"
                   alt="SkillSwap Logo"
-                  className="h-8 w-8 mr-2"    // adjust size here
+                  className="h-18 w-18 mr-2"   // 4rem x 4rem (~64px)
                 />
-                
+
+
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
               </div>
               <div>
@@ -246,8 +247,8 @@ const Navbar = () => {
       {/* Mobile menu */}
       {user && (
         <div className={`md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300 ease-in-out ${isMobileMenuOpen
-            ? 'max-h-96 opacity-100'
-            : 'max-h-0 opacity-0 overflow-hidden'
+          ? 'max-h-96 opacity-100'
+          : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
           <div className="px-4 pt-2 pb-3 space-y-1">
             <Link
