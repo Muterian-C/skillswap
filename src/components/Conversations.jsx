@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { MessageCircle, User, ChevronRight, Clock } from 'lucide-react';
+import Navbar from './Navbar';
 
 const Conversations = () => {
   const [conversations, setConversations] = useState([]);
