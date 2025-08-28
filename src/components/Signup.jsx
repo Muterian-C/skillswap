@@ -33,51 +33,71 @@ const Signup = () => {
 
   // Form submission handler
   const submit = async (e) => {
-    e.preventDefault();
-    setStatus({ loading: true, error: '', success: '' });
-    const { username, email, phone, password } = form;
+  e.preventDefault();
+  setStatus({ loading: true, error: '', success: '' });
+  const { username, email, phone, password } = form;
 
-    // Client-side validation
-    if (!username.trim()) {
-      setStatus({ loading: false, error: 'Username is required' });
-      return;
-    }
+  // -----------------------------
+  // Client-side validation
+  // -----------------------------
+  if (!username.trim()) {
+    setStatus({ loading: false, error: 'Username is required', success: '' });
+    return;
+  }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setStatus({ loading: false, error: 'Please enter a valid email' });
-      return;
-    }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    setStatus({ loading: false, error: 'Please enter a valid email', success: '' });
+    return;
+  }
 
-    if (!/^\d{10,15}$/.test(phone)) {
-      setStatus({ loading: false, error: 'Phone must be 10-15 digits' });
-      return;
-    }
+  if (!/^\d{10,15}$/.test(phone)) {
+    setStatus({ loading: false, error: 'Phone must be 10-15 digits', success: '' });
+    return;
+  }
 
-    if (password.length < 8) {
-      setStatus({ loading: false, error: 'Password must be at least 8 characters' });
-      return;
-    }
+  if (password.length < 8) {
+    setStatus({ loading: false, error: 'Password must be at least 8 characters', success: '' });
+    return;
+  }
 
-    try {
-      // Call AuthContext signup function
-      await signup(username, email, password);
-      
+  // -----------------------------
+  // Send data to backend
+  // -----------------------------
+  try {
+    const formData = new FormData();
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('password', password);
+
+    const response = await fetch('https://muterianc.pythonanywhere.com//api/register', {
+      method: 'POST',
+      body: formData, // FormData automatically sets multipart/form-data headers
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
       setStatus({ 
         loading: false, 
         error: '', 
         success: 'Registration successful! Redirecting...' 
       });
-      
-      // Redirect to login after 1.5 seconds
+
+      // Redirect to signin page after 1.5 seconds
       setTimeout(() => navigate('/signin'), 1500);
-    } catch (err) {
-      setStatus({
-        loading: false,
-        error: err.message || "Registration failed. Please try again.",
-        success: ''
+    } else {
+      setStatus({ 
+        loading: false, 
+        error: data.error || 'Registration failed', 
+        success: '' 
       });
     }
-  };
+  } catch (err) {
+    setStatus({ loading: false, error: 'Network error', success: '' });
+  }
+};
+
 
   // ... rest of the component remains unchanged
   // (Keep all your existing JSX structure)
