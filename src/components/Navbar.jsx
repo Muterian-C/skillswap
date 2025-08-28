@@ -79,7 +79,7 @@ const Navbar = () => {
                 <img
                   src="/skillswap-logo.png"
                   alt="SkillSwap Logo"
-                  className="h-17 w-17 mr-2"   // 4rem x 4rem (~64px)
+                  className="h-16 w-16 mr-2"   // 4rem x 4rem (~64px)
                 />
 
 
