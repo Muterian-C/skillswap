@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext'; // Import useAuth hook
 import { useNavigate } from 'react-router-dom';
+import Navbar from './Navbar';
 
 
 
@@ -135,6 +136,7 @@ const Skills = () => {
           transition: `all 0.6s ease ${index * 0.1}s`
         }}
       >
+        <Navbar />
         <div
           className="card shadow-sm h-100 border-0"
           style={{

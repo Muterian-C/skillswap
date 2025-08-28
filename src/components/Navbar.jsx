@@ -79,13 +79,17 @@ const Navbar = () => {
                 <img
                   src="/skillswap-logo.png"
                   alt="SkillSwap Logo"
-                  className="h-18 w-18 mr-2"   // 4rem x 4rem (~64px)
+                  className="h-16 w-16 mr-2"   // 4rem x 4rem (~64px)
                 />
 
 
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
               </div>
-              
+              {/* <div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  SkillSwap
+                </span>
+              </div> */}
             </Link>
 
             {user && (

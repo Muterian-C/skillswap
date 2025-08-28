@@ -112,6 +112,7 @@ const Conversations = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
           {/* Header */}
+          <Navbar />
           <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
             <div className="flex items-center justify-between">
               <div>
