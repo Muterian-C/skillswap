@@ -15,6 +15,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Messages from "./components/chat";
 import { NotificationProvider } from './context/NotificationContext';
 import Conversations from "./components/Conversations";
+import logo from './skillswap-logo.png'; // place it inside src/
 
 function App() {
   return (

@@ -48,12 +48,12 @@ const Navbar = () => {
 
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
-    
+
     // Navigate to chat if it's a message notification with a sender_id
     if (notification.sender_id) {
       navigate(`/messages/${notification.sender_id}`);
     }
-    
+
     setIsNotificationOpen(false);
   };
 
@@ -61,7 +61,7 @@ const Navbar = () => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'Just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -76,13 +76,18 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link to="/" className="flex items-center group">
               <div className="relative">
+                <img
+                  src="/skillswap-logo.png"   // put your logo file in /public folder
+                  alt="SkillSwap Logo"
+                  className="h-8 w-8 mr-2"    // adjust size here
+                />
                 <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                   SkillSwap
                 </span>
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
               </div>
             </Link>
-            
+
             {user && (
               <div className="hidden md:ml-8 md:flex md:space-x-1">
                 <Link
@@ -161,9 +166,8 @@ const Navbar = () => {
                           notifications.map((notification) => (
                             <div
                               key={notification.id}
-                              className={`p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer ${
-                                !notification.is_read ? 'bg-blue-50' : ''
-                              }`}
+                              className={`p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''
+                                }`}
                               onClick={() => handleNotificationClick(notification)}
                             >
                               <div className="flex justify-between items-start">
@@ -202,7 +206,7 @@ const Navbar = () => {
                     Logout
                   </button>
                 </div>
-                
+
                 {/* Mobile menu button */}
                 <button
                   onClick={toggleMobileMenu}
@@ -238,11 +242,10 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {user && (
-        <div className={`md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300 ease-in-out ${
-          isMobileMenuOpen 
-            ? 'max-h-96 opacity-100' 
+        <div className={`md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300 ease-in-out ${isMobileMenuOpen
+            ? 'max-h-96 opacity-100'
             : 'max-h-0 opacity-0 overflow-hidden'
-        }`}>
+          }`}>
           <div className="px-4 pt-2 pb-3 space-y-1">
             <Link
               to="/"
@@ -276,7 +279,7 @@ const Navbar = () => {
               <MessageCircle className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               Messages
             </Link>
-            
+
             {/* Mobile user info and logout */}
             <div className="border-t border-gray-200 pt-3 mt-3">
               <div className="flex items-center px-4 py-2 mb-2">
