@@ -99,7 +99,7 @@ const Navbar = () => {
                 <img
                   src="/skillswap-logo.png"
                   alt="SkillSwap Logo"
-                  className="h-12 w-12 mr-3 relative z-10 group-hover:scale-105 transition-transform duration-300"
+                  className="h-16 w-16 mr-3 relative z-10 group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="hidden sm:block">
