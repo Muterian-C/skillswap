@@ -6,6 +6,7 @@ import { useNotifications } from '../context/NotificationContext';
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -16,6 +17,17 @@ const Navbar = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+  }, []);
+
+  // Handle scroll effect for navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      setScrolled(isScrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Close notification dropdown when clicking outside
@@ -69,62 +81,75 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 sticky top-0 z-50">
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+      scrolled 
+        ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50' 
+        : 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100'
+    }`}>
+      {/* Animated gradient line at top */}
+      <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 to-blue-500 animate-pulse bg-[length:200%_100%]"></div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Brand and main links */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center group">
+            <Link to="/" className="flex items-center group relative">
               <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500 scale-110"></div>
                 <img
                   src="/skillswap-logo.png"
                   alt="SkillSwap Logo"
-                  className="h-16 w-16 mr-2"   // 4rem x 4rem (~64px)
+                  className="h-12 w-12 mr-3 relative z-10 group-hover:scale-105 transition-transform duration-300"
                 />
-
-
-                <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
               </div>
-              {/* <div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <div className="hidden sm:block">
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 transition-all duration-300">
                   SkillSwap
                 </span>
-              </div> */}
+                <div className="h-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              </div>
             </Link>
 
             {user && (
-              <div className="hidden md:ml-8 md:flex md:space-x-1">
+              <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
                 <Link
                   to="/"
-                  className="group inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 relative overflow-hidden"
+                  className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-blue-600 transition-all duration-300 overflow-hidden"
                 >
-                  <Home className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                  Home
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-blue-100 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-xl"></div>
+                  <Home className="mr-2 h-4 w-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 relative z-10" />
+                  <span className="relative z-10">Home</span>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
+                
                 <Link
                   to="/skills"
-                  className="group inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200 relative overflow-hidden"
+                  className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-purple-600 transition-all duration-300 overflow-hidden"
                 >
-                  <Search className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                  Browse
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-50 to-pink-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-50 to-purple-100 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-xl"></div>
+                  <Search className="mr-2 h-4 w-4 group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 relative z-10" />
+                  <span className="relative z-10">Browse</span>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
+                
                 <Link
                   to="/addskills"
-                  className="group inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50 transition-all duration-200 relative overflow-hidden"
+                  className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-pink-600 transition-all duration-300 overflow-hidden"
                 >
-                  <PlusSquare className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                  Add Skill
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-50 to-pink-100 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-xl"></div>
+                  <PlusSquare className="mr-2 h-4 w-4 group-hover:scale-110 group-hover:rotate-90 transition-all duration-300 relative z-10" />
+                  <span className="relative z-10">Add Skill</span>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
+                
                 <Link
                   to="/conversations"
-                  className="group inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200 relative overflow-hidden"
+                  className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-emerald-600 transition-all duration-300 overflow-hidden"
                 >
-                  <MessageCircle className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
-                  Messages
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-emerald-100 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-xl"></div>
+                  <MessageCircle className="mr-2 h-4 w-4 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300 relative z-10" />
+                  <span className="relative z-10">Messages</span>
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-emerald-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
               </div>
             )}
@@ -134,28 +159,31 @@ const Navbar = () => {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                {/* Notification Bell */}
+                {/* Enhanced Notification Bell */}
                 <div className="relative" ref={notificationRef}>
                   <button
                     onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                    className="p-2 rounded-full hover:bg-gray-100 relative transition-colors"
+                    className="relative p-2 rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-300 group"
                   >
-                    <Bell className="w-5 h-5 text-gray-600" />
+                    <Bell className="w-5 h-5 text-gray-600 group-hover:text-blue-600 group-hover:rotate-12 transition-all duration-300" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse shadow-lg">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </button>
 
                   {isNotificationOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                      <div className="p-3 border-b border-gray-200 flex justify-between items-center">
-                        <h3 className="font-semibold text-gray-800">Notifications</h3>
+                    <div className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/50 z-50 animate-in slide-in-from-top-5 duration-300">
+                      <div className="p-4 border-b border-gray-200/50 flex justify-between items-center">
+                        <h3 className="font-semibold text-gray-800 flex items-center">
+                          <Bell className="w-4 h-4 mr-2" />
+                          Notifications
+                        </h3>
                         {unreadCount > 0 && (
                           <button
                             onClick={markAllAsRead}
-                            className="text-xs text-blue-500 hover:text-blue-700 flex items-center"
+                            className="text-xs text-blue-500 hover:text-blue-700 px-3 py-1 rounded-full hover:bg-blue-50 transition-all duration-200"
                           >
                             Mark all as read
                           </button>
@@ -163,26 +191,31 @@ const Navbar = () => {
                       </div>
                       <div className="max-h-96 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="p-4 text-center text-gray-500">
-                            No notifications yet
+                          <div className="p-6 text-center text-gray-500">
+                            <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                            <p>No notifications yet</p>
                           </div>
                         ) : (
-                          notifications.map((notification) => (
+                          notifications.map((notification, index) => (
                             <div
                               key={notification.id}
-                              className={`p-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer ${!notification.is_read ? 'bg-blue-50' : ''
+                              className={`p-4 border-b border-gray-100/50 last:border-b-0 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 cursor-pointer transition-all duration-200 transform hover:scale-[1.02] ${!notification.is_read ? 'bg-gradient-to-r from-blue-50 to-purple-50' : ''
                                 }`}
                               onClick={() => handleNotificationClick(notification)}
+                              style={{
+                                animationDelay: `${index * 50}ms`
+                              }}
                             >
                               <div className="flex justify-between items-start">
-                                <p className="text-sm text-gray-800">{notification.message}</p>
+                                <p className="text-sm text-gray-800 pr-2">{notification.message}</p>
                                 {!notification.is_read && (
                                   <span className="ml-2 flex-shrink-0">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-gray-500 mt-2 flex items-center">
+                                <span className="w-1 h-1 bg-gray-400 rounded-full mr-2"></span>
                                 {formatTime(notification.created_at)}
                               </p>
                             </div>
@@ -194,32 +227,33 @@ const Navbar = () => {
                 </div>
 
                 <div className="hidden md:flex items-center space-x-3">
-                  <div className="flex items-center space-x-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-full px-4 py-2 border border-gray-200">
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <div className="flex items-center space-x-3 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-2xl px-4 py-2 border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       <User className="h-4 w-4 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
                       Hi, {user?.username || 'User'}
                     </span>
                   </div>
+                  
                   <button
                     onClick={handleLogout}
-                    className="group flex items-center text-sm font-medium text-gray-600 hover:text-red-600 bg-gray-100 hover:bg-red-50 px-4 py-2 rounded-lg transition-all duration-200 border border-gray-200 hover:border-red-200"
+                    className="group flex items-center text-sm font-medium text-gray-600 hover:text-red-600 bg-gradient-to-r from-gray-100/80 to-red-50/80 hover:from-red-50 hover:to-red-100 px-4 py-2 rounded-2xl transition-all duration-300 border border-gray-200/50 hover:border-red-200 hover:shadow-lg transform hover:scale-105"
                   >
-                    <LogOut className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                    <LogOut className="h-4 w-4 mr-2 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300" />
                     Logout
                   </button>
                 </div>
 
-                {/* Mobile menu button */}
+                {/* Enhanced Mobile menu button */}
                 <button
                   onClick={toggleMobileMenu}
-                  className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+                  className="md:hidden p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-300 group"
                 >
                   {isMobileMenuOpen ? (
-                    <X className="h-6 w-6" />
+                    <X className="h-6 w-6 group-hover:rotate-90 transition-transform duration-300" />
                   ) : (
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
                   )}
                 </button>
               </div>
@@ -227,16 +261,17 @@ const Navbar = () => {
               <div className="flex space-x-3">
                 <Link
                   to="/signin"
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-all duration-200"
+                  className="inline-flex items-center px-6 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-300 border border-transparent hover:border-gray-200"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-lg hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  className="group relative inline-flex items-center px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
                 >
-                  <span className="relative z-10">Sign Up</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="relative z-10 group-hover:scale-105 transition-transform duration-300">Sign Up</span>
+                  <div className="absolute inset-0 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
                 </Link>
               </div>
             )}
@@ -244,50 +279,38 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Enhanced Mobile menu */}
       {user && (
-        <div className={`md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300 ease-in-out ${isMobileMenuOpen
-          ? 'max-h-96 opacity-100'
-          : 'max-h-0 opacity-0 overflow-hidden'
-          }`}>
-          <div className="px-4 pt-2 pb-3 space-y-1">
-            <Link
-              to="/"
-              onClick={closeMobileMenu}
-              className="group flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
-            >
-              <Home className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-              Home
-            </Link>
-            <Link
-              to="/skills"
-              onClick={closeMobileMenu}
-              className="group flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
-            >
-              <Search className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-              Browse Skills
-            </Link>
-            <Link
-              to="/addskills"
-              onClick={closeMobileMenu}
-              className="group flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-pink-600 hover:bg-pink-50 transition-all duration-200"
-            >
-              <PlusSquare className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-              Add Skill
-            </Link>
-            <Link
-              to="/conversations"
-              onClick={closeMobileMenu}
-              className="group flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200"
-            >
-              <MessageCircle className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-              Messages
-            </Link>
+        <div className={`md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 transition-all duration-500 ease-out ${
+          isMobileMenuOpen
+            ? 'max-h-[500px] opacity-100 shadow-2xl'
+            : 'max-h-0 opacity-0 overflow-hidden'
+        }`}>
+          <div className="px-4 pt-3 pb-4 space-y-2">
+            {[
+              { to: '/', icon: Home, label: 'Home', color: 'blue' },
+              { to: '/skills', icon: Search, label: 'Browse Skills', color: 'purple' },
+              { to: '/addskills', icon: PlusSquare, label: 'Add Skill', color: 'pink' },
+              { to: '/conversations', icon: MessageCircle, label: 'Messages', color: 'emerald' }
+            ].map((item, index) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={closeMobileMenu}
+                className={`group flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:text-${item.color}-600 hover:bg-gradient-to-r hover:from-${item.color}-50 hover:to-${item.color}-100 transition-all duration-300 transform hover:translate-x-2`}
+                style={{
+                  animationDelay: `${index * 100}ms`
+                }}
+              >
+                <item.icon className="mr-3 h-5 w-5 group-hover:scale-110 transition-all duration-300" />
+                {item.label}
+              </Link>
+            ))}
 
-            {/* Mobile user info and logout */}
-            <div className="border-t border-gray-200 pt-3 mt-3">
-              <div className="flex items-center px-4 py-2 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
+            {/* Enhanced Mobile user info and logout */}
+            <div className="border-t border-gray-200/50 pt-4 mt-4">
+              <div className="flex items-center px-4 py-3 mb-2 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3 shadow-lg">
                   <User className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-base font-medium text-gray-700">
@@ -296,9 +319,9 @@ const Navbar = () => {
               </div>
               <button
                 onClick={handleLogout}
-                className="group w-full flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+                className="group w-full flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-600 hover:text-red-600 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 transition-all duration-300 transform hover:translate-x-2"
               >
-                <LogOut className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+                <LogOut className="mr-3 h-5 w-5 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300" />
                 Logout
               </button>
             </div>
