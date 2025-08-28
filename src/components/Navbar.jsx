@@ -103,9 +103,7 @@ const Navbar = () => {
                 />
               </div>
               <div className="hidden sm:block">
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 transition-all duration-300">
-                  SkillSwap
-                </span>
+                
                 <div className="h-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
               </div>
             </Link>
