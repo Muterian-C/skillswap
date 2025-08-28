@@ -81,10 +81,13 @@ const Navbar = () => {
                   alt="SkillSwap Logo"
                   className="h-8 w-8 mr-2"    // adjust size here
                 />
-                {/* <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  SkillSwap
-                </span> */}
+                
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 group-hover:w-full transition-all duration-300"></div>
+              </div>
+              <div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  SkillSwap
+                </span>
               </div>
             </Link>
 
