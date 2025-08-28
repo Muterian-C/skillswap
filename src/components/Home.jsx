@@ -58,6 +58,8 @@ const Home = () => {
 
       <Navbar />
 
+      <div className="h-16"></div>
+
       <main>
         {/* ✅ HERO SECTION */}
         <section className="bg-light text-dark text-center py-5 position-relative overflow-hidden">

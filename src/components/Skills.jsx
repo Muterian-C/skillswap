@@ -130,6 +130,8 @@ const Skills = () => {
     return (
       <div>
         <Navbar />
+
+        <div className="h-16"></div>
       <div
         className="col-md-4 mb-4"
         style={{
