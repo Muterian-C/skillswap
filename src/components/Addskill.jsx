@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight } from 'lucide-react';
 import axios from "axios";
 import Navbar from './Navbar';
+import { useAuth } from '../context/AuthContext'; // ⬅️ use AuthContext
 
 const AddSkill = () => {
   // Mock user for demo
