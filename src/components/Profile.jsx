@@ -51,7 +51,7 @@ const Profile = () => {
     if (!window.confirm('Are you sure you want to delete this skill?')) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/delete_skill/${skillId}`, {
+      await axios.delete(`https://muterianc.pythonanywhere.com/api/delete_skill/${skillId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -179,7 +179,7 @@ const Profile = () => {
                           {skill.skill_photo ? (
                             <img
                               className="h-48 w-full object-cover"
-                              src={`http://localhost:5000/${skill.skill_photo}`}
+                              src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
                               alt={skill.skill_name}
                             />
                           ) : (
