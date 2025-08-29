@@ -1,26 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
+import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight } from 'lucide-react';
 
 const EditSkill = () => {
   const { id } = useParams();
-  const { user, token } = useAuth(); // Make sure your AuthContext provides the token
+  const { user, token } = useAuth();
   const navigate = useNavigate();
 
   const [skillData, setSkillData] = useState({
     skill_name: '',
     category: '',
     description: '',
-    difficulty: '',
+    difficulty: 'Beginner',
     proficiency: 1,
     years_experience: 0,
     skill_photo: null
   });
 
+  const [preview, setPreview] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState({ error: '', success: '' });
+
+  const categories = [
+    'Programming', 'Design', 'Marketing', 'Photography', 'Music', 'Cooking',
+    'Languages', 'Writing', 'Sports', 'Fitness', 'Art', 'Crafts', 'Business',
+    'Finance', 'Education', 'Health', 'Technology', 'Engineering', 'Science',
+    'Gardening', 'DIY', 'Gaming', 'Acting', 'Dancing', 'Other'
+  ];
+
+  const difficultyColors = {
+    'Beginner': 'from-green-400 to-emerald-500',
+    'Intermediate': 'from-blue-400 to-cyan-500',
+    'Advanced': 'from-purple-400 to-violet-500',
+    'Expert': 'from-orange-400 to-red-500'
+  };
+
+  // Calculate progress based on form completion
+  const calculateProgress = useCallback(() => {
+    let completedFields = 0;
+    const totalFields = 6; // skill_name, category, description, difficulty, proficiency, years_experience
+
+    if (skillData.skill_name.trim()) completedFields++;
+    if (skillData.category) completedFields++;
+    if (skillData.description.trim()) completedFields++;
+    if (skillData.difficulty) completedFields++;
+    if (skillData.proficiency > 0) completedFields++;
+    if (skillData.years_experience >= 0) completedFields++;
+
+    const progressPercentage = Math.round((completedFields / totalFields) * 100);
+    setProgress(progressPercentage);
+  }, [skillData]);
+
+  useEffect(() => {
+    calculateProgress();
+  }, [calculateProgress]);
 
   useEffect(() => {
     // Fetch skill data by ID with authorization
@@ -31,10 +69,13 @@ const EditSkill = () => {
     })
       .then(res => {
         setSkillData(res.data.skill);
+        if (res.data.skill.skill_photo) {
+          setPreview(res.data.skill.skill_photo);
+        }
       })
       .catch(err => {
         console.error("Error fetching skill:", err);
-        setError("Failed to load skill");
+        setStatus({ error: "Failed to load skill" });
       })
       .finally(() => setLoading(false));
   }, [id, token]);
@@ -43,13 +84,78 @@ const EditSkill = () => {
     const { name, value, files } = e.target;
     if (files) {
       setSkillData(prev => ({ ...prev, [name]: files[0] }));
+      setPreview(URL.createObjectURL(files[0]));
     } else {
       setSkillData(prev => ({ ...prev, [name]: value }));
     }
+    
+    if (status.error || status.success) {
+      setStatus({ error: '', success: '' });
+    }
   };
+
+  const validateFile = (file) => {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+    if (file.size > maxSize) {
+      return 'File size should be less than 5MB';
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      return 'Please upload a valid image file (JPEG, PNG, or WebP)';
+    }
+
+    return null;
+  };
+
+  const handleFileChange = useCallback((e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const error = validateFile(file);
+    if (error) {
+      setStatus({ error, success: '' });
+      return;
+    }
+
+    setSkillData(prev => ({ ...prev, skill_photo: file }));
+    setPreview(URL.createObjectURL(file));
+    setStatus({ error: '', success: '' });
+  }, []);
+
+  const removeImage = useCallback(() => {
+    setSkillData(prev => ({ ...prev, skill_photo: null }));
+    setPreview('');
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
+  }, [preview]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setStatus({ error: '', success: '' });
+    setIsSubmitting(true);
+
+    // Validate required fields
+    if (!skillData.skill_name.trim() || !skillData.category || !skillData.description.trim()) {
+      setStatus({ error: 'Please fill in all required fields' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (skillData.skill_name.length < 2) {
+      setStatus({ error: 'Skill name must be at least 2 characters' });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (skillData.description.length < 10) {
+      setStatus({ error: 'Description must be at least 10 characters' });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const formData = new FormData();
       for (let key in skillData) {
@@ -66,110 +172,342 @@ const EditSkill = () => {
         }
       });
 
-      alert("Skill updated successfully!");
-      navigate('/skills');
+      setStatus({ success: 'Skill updated successfully! 🎉' });
+      setTimeout(() => {
+        navigate('/skills');
+      }, 1500);
     } catch (err) {
       console.error("Error updating skill:", err);
-      alert("Failed to update skill.");
+      setStatus({ error: "Failed to update skill." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  const getProgressColor = () => {
+    if (progress < 30) return 'from-red-400 to-red-500';
+    if (progress < 70) return 'from-yellow-400 to-orange-500';
+    return 'from-green-400 to-emerald-500';
+  };
+
+  const getProgressMessage = () => {
+    if (progress === 0) return 'Let\'s get started!';
+    if (progress < 30) return 'Just getting started...';
+    if (progress < 70) return 'Making good progress!';
+    if (progress < 100) return 'Almost there!';
+    return 'Ready to update!';
+  };
+
+  if (loading) return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="flex flex-col items-center">
+        <Loader className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+        <p className="text-gray-600">Loading skill data...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8 px-4">
       <Navbar />
-      <div className="container my-5">
-        <h2 className="mb-4 text-primary">Edit Skill</h2>
-        <form onSubmit={handleSubmit} encType="multipart/form-data">
-          {/* ... rest of your form remains the same ... */}
 
-          <div className="mb-3">
-            <label className="form-label">Skill Name</label>
-            <input
-              type="text"
-              className="form-control"
-              name="skill_name"
-              value={skillData.skill_name}
-              onChange={handleChange}
-              required
-            />
+      <div className="h-16"></div>
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              Edit Your Skill
+            </h1>
+          </div>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Update your skill information to keep your profile current and accurate
+          </p>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="mb-8 bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-700">Completion Progress</span>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-gray-500">{getProgressMessage()}</span>
+            </div>
+            <span className="text-sm font-bold text-gray-800 bg-gray-100 px-3 py-1 rounded-full">
+              {progress}%
+            </span>
           </div>
 
-          <div className="mb-3">
-            <label className="form-label">Category</label>
-            <input
-              type="text"
-              className="form-control"
-              name="category"
-              value={skillData.category}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Description</label>
-            <textarea
-              className="form-control"
-              name="description"
-              value={skillData.description}
-              onChange={handleChange}
-              rows={4}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Difficulty</label>
-            <select
-              className="form-select"
-              name="difficulty"
-              value={skillData.difficulty}
-              onChange={handleChange}
+          <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`absolute left-0 top-0 h-full bg-gradient-to-r ${getProgressColor()} transition-all duration-500 ease-out rounded-full`}
+              style={{ width: `${progress}%` }}
             >
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
+              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+            </div>
           </div>
 
-          <div className="mb-3">
-            <label className="form-label">Proficiency</label>
-            <input
-              type="number"
-              className="form-control"
-              name="proficiency"
-              value={skillData.proficiency}
-              onChange={handleChange}
-              min={1}
-              max={10}
-            />
-          </div>
+          {progress === 100 && (
+            <div className="mt-3 flex items-center gap-2 text-green-600">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">All required fields completed!</span>
+            </div>
+          )}
+        </div>
 
-          <div className="mb-3">
-            <label className="form-label">Years of Experience</label>
-            <input
-              type="number"
-              className="form-control"
-              name="years_experience"
-              value={skillData.years_experience}
-              onChange={handleChange}
-              min={0}
-            />
+        {/* Status Messages */}
+        {status.error && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-2xl shadow-sm animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <span className="text-red-700 font-medium">{status.error}</span>
+            </div>
           </div>
+        )}
 
-          <div className="mb-3">
-            <label className="form-label">Skill Photo</label>
-            <input
-              type="file"
-              className="form-control"
-              name="skill_photo"
-              onChange={handleChange}
-            />
+        {status.success && (
+          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-2xl shadow-sm animate-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-full">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <span className="text-green-700 font-medium">{status.success}</span>
+            </div>
           </div>
+        )}
 
-          <button type="submit" className="btn btn-success">Update Skill</button>
-        </form>
+        {/* Main Form Card */}
+        <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 p-8 md:p-10">
+          <form onSubmit={handleSubmit} encType="multipart/form-data">
+            <div className="space-y-8">
+              {/* Basic Info Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-800 border-b border-gray-200 pb-3 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">1</span>
+                  </div>
+                  Basic Information
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Skill Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      name="skill_name"
+                      type="text"
+                      className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300 placeholder-gray-400"
+                      value={skillData.skill_name}
+                      onChange={handleChange}
+                      placeholder="e.g. Web Development, Graphic Design"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="category"
+                      className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
+                      value={skillData.category}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="description"
+                    className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300 placeholder-gray-400 resize-none"
+                    rows="4"
+                    value={skillData.description}
+                    onChange={handleChange}
+                    placeholder="Describe your skill, experience, and what you can offer to help others learn..."
+                    required
+                  />
+                  <div className="text-right">
+                    <span className={`text-xs ${skillData.description.length < 10 ? 'text-red-500' : 'text-green-500'}`}>
+                      {skillData.description.length}/10 minimum characters
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Skill Details Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-800 border-b border-gray-200 pb-3 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">2</span>
+                  </div>
+                  Skill Details
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Difficulty Level</label>
+                    <div className="relative">
+                      <select
+                        name="difficulty"
+                        className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300 appearance-none"
+                        value={skillData.difficulty}
+                        onChange={handleChange}
+                      >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="Expert">Expert</option>
+                      </select>
+                      <div className={`absolute top-3 right-12 w-3 h-3 rounded-full bg-gradient-to-r ${difficultyColors[skillData.difficulty]}`}></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Proficiency Level</label>
+                    <div className="flex items-center gap-2 p-3 bg-white/50 border-2 border-gray-200 rounded-xl">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setSkillData({ ...skillData, proficiency: star })}
+                            className="p-1 focus:outline-none transition-all duration-200 transform hover:scale-125"
+                            aria-label={`Rate ${star} star`}
+                          >
+                            <Star
+                              size={24}
+                              className={
+                                star <= skillData.proficiency
+                                  ? 'text-yellow-400 fill-current drop-shadow-sm'
+                                  : 'text-gray-300 hover:text-yellow-300'
+                              }
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <span className="ml-2 text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                        {skillData.proficiency}/5
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700">Years Experience</label>
+                    <input
+                      name="years_experience"
+                      type="number"
+                      min="0"
+                      max="50"
+                      className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
+                      value={skillData.years_experience}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Photo Upload Section */}
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-800 border-b border-gray-200 pb-3 flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">3</span>
+                  </div>
+                  Visual Representation
+                  <span className="text-sm text-gray-500 ml-2">(Optional)</span>
+                </h2>
+
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-gray-700">Skill Photo</label>
+                  <p className="text-sm text-gray-500">
+                    Upload an image that represents your skill (optional, max 5MB)
+                  </p>
+
+                  {preview ? (
+                    <div className="relative group">
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        className="h-64 w-full object-cover rounded-2xl border-2 border-gray-200 shadow-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-red-50 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                        aria-label="Remove image"
+                      >
+                        <X size={20} className="text-red-500" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-2xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all duration-300 group">
+                      <div className="flex flex-col items-center p-6">
+                        <div className="p-4 bg-blue-50 rounded-full group-hover:bg-blue-100 transition-colors duration-300">
+                          <Upload size={32} className="text-blue-500" />
+                        </div>
+                        <span className="text-gray-600 font-medium mt-3">Click to upload an image</span>
+                        <span className="text-xs text-gray-400 mt-2">PNG, JPG, JPEG, WebP (max 5MB)</span>
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-6">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || progress < 50}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-2xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none font-semibold text-lg"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <Loader className="w-5 h-5 animate-spin" />
+                      Updating Skill...
+                    </div>
+                  ) : progress < 50 ? (
+                    <div className="flex items-center justify-center gap-3">
+                      <AlertCircle className="w-5 h-5" />
+                      Complete More Fields to Continue
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3">
+                      <Sparkles className="w-5 h-5" />
+                      Update My Skill
+                    </div>
+                  )}
+                </button>
+
+                {progress < 50 && (
+                  <p className="text-center text-sm text-gray-500 mt-2">
+                    Fill in at least 50% of the form to enable submission
+                  </p>
+                )}
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
