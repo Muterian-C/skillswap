@@ -145,7 +145,7 @@ const Skills = () => {
         >
           <div className="position-relative overflow-hidden">
             <img
-              src={`/images/${skill.skill_photo}`}
+              src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
               className="card-img-top"
               alt={skill.skill_name}
               onError={(e) => {
@@ -158,8 +158,10 @@ const Skills = () => {
                 transition: 'transform 0.3s ease'
               }}
               onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'
+              }
             />
+
             {skill.category && (
               <span className="badge bg-primary position-absolute top-0 start-0 m-2">
                 {skill.category}
@@ -248,7 +250,7 @@ const Skills = () => {
     <div>
       <Navbar />
       <div className="h-16"></div> {/* Spacer for fixed navbar */}
-      
+
       <div className="container my-5">
         <div className="text-center mb-5">
           <h2 className="display-4 fw-bold text-primary mb-3">Available Skills</h2>
