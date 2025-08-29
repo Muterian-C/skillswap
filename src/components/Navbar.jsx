@@ -109,7 +109,7 @@ const Navbar = () => {
             </Link>
 
             {user && (
-              <div className="hidden lg:ml-8 lg:flex lg:space-x-1">
+              <div className="hidden md:ml-8 md:flex md:space-x-1">
                 <Link
                   to="/"
                   className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-blue-600 transition-all duration-300 overflow-hidden"
