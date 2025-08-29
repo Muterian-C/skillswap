@@ -103,7 +103,9 @@ const Navbar = () => {
                 />
               </div>
               <div className="hidden sm:block">
-                
+                {/* <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 transition-all duration-300">
+                  SkillSwap
+                </span> */}
                 <div className="h-0.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
               </div>
             </Link>
@@ -224,7 +226,7 @@ const Navbar = () => {
                   )}
                 </div>
 
-                <div className="hidden md:flex items-center space-x-3">
+                <div className="hidden sm:flex items-center space-x-3">
                   <div className="flex items-center space-x-3 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-2xl px-4 py-2 border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       <User className="h-4 w-4 text-white" />
