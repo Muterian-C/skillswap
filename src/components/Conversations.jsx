@@ -1,31 +1,14 @@
-// components/Conversations.jsx
+// components/Conversations.jsx (SIMPLIFIED)
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { MessageCircle, Plus, AlertCircle, Search, Trash2, Wifi, WifiOff, User, Clock, ChevronRight } from 'lucide-react';
+import { MessageCircle, Plus, AlertCircle, Search, Wifi, WifiOff, User, Clock, ChevronRight } from 'lucide-react';
 import Navbar from './Navbar';
 import ConversationSkeleton from './ConversationSkeleton';
 
-// ConversationItem component (enhanced)
-const ConversationItem = ({ conversation, onDelete }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this conversation?')) {
-      setIsDeleting(true);
-      try {
-        // Pass user_id instead of id for soft delete
-        await onDelete(conversation.user_id);
-      } catch (error) {
-        console.error('Delete error:', error);
-      }
-      setIsDeleting(false);
-    }
-  };
-
+// ConversationItem component (simplified - no delete)
+const ConversationItem = ({ conversation }) => {
   const getLastMessageTime = (timestamp) => {
     if (!timestamp) return '';
 
@@ -119,7 +102,7 @@ const ConversationItem = ({ conversation, onDelete }) => {
 
       {/* Unread indicator */}
       {conversation.unread_count > 0 && (
-        <div className="absolute right-8 top-4">
+        <div className="absolute right-4 top-4">
           <div 
             className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-xs text-white font-semibold"
             aria-label={`${conversation.unread_count} unread messages`}
@@ -128,21 +111,11 @@ const ConversationItem = ({ conversation, onDelete }) => {
           </div>
         </div>
       )}
-
-      {/* Delete button */}
-      <button
-        onClick={handleDelete}
-        disabled={isDeleting}
-        className="ml-4 p-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 disabled:opacity-50"
-        aria-label="Delete conversation"
-      >
-        <Trash2 className="h-4 w-4" />
-      </button>
     </Link>
   );
 };
 
-// Main Conversations component
+// Main Conversations component (simplified)
 const Conversations = () => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -167,58 +140,53 @@ const Conversations = () => {
     };
   }, []);
 
- const fetchConversations = useCallback(async (pageNum = 1, isRefresh = false) => {
-  if (!user) return;
+  const fetchConversations = useCallback(async (pageNum = 1, isRefresh = false) => {
+    if (!user) return;
 
-  try {
-    if (pageNum === 1 || isRefresh) {
-      setLoading(true);
-    }
-    setError(null);
-    
-    const token = localStorage.getItem('token'); // or your token storage method
-    const res = await axios.get(
-      `https://muterianc.pythonanywhere.com/api/conversations/${user.id}?page=${pageNum}&limit=20`,
-      {
-        timeout: 10000,
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-
-    // THIS BLOCK GOES HERE:
-    if (res.data.success) {
+    try {
       if (pageNum === 1 || isRefresh) {
-        setConversations(res.data.conversations || []);
-      } else {
-        setConversations(prev => [...prev, ...res.data.conversations]);
+        setLoading(true);
       }
-      // Update hasMore based on pagination info
-      setHasMore(res.data.pagination && pageNum < res.data.pagination.pages);
-      setPage(pageNum + 1);
-    } else {
-      setError(res.data.message || 'Failed to load conversations');
-    }
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      const res = await axios.get(
+        `https://muterianc.pythonanywhere.com/api/conversations/${user.id}?page=${pageNum}&limit=20`,
+        {
+          timeout: 10000,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
 
-  } catch (err) {
-    // THIS CATCH BLOCK GOES HERE:
-    console.error("Error fetching conversations:", err);
-    if (err.code === 'ECONNABORTED') {
-      setError('Request timeout - please check your connection');
-    } else if (err.response?.status === 401) {
-      setError('Session expired - please log in again');
-    } else if (err.response?.status === 404) {
-      setError('User not found');
-    } else if (err.response?.status === 500) {
-      setError('Server error - please try again later');
-    } else {
-      setError(err.response?.data?.error || 'Unable to load conversations');
+      if (res.data.success) {
+        if (pageNum === 1 || isRefresh) {
+          setConversations(res.data.conversations || []);
+        } else {
+          setConversations(prev => [...prev, ...res.data.conversations]);
+        }
+        setHasMore(res.data.pagination && pageNum < res.data.pagination.pages);
+        setPage(pageNum + 1);
+      } else {
+        setError(res.data.message || 'Failed to load conversations');
+      }
+
+    } catch (err) {
+      console.error("Error fetching conversations:", err);
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timeout - please check your connection');
+      } else if (err.response?.status === 401) {
+        setError('Session expired - please log in again');
+      } else if (err.response?.status === 500) {
+        setError('Server error - please try again later');
+      } else {
+        setError(err.response?.data?.error || 'Unable to load conversations');
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-}, [user]);
+  }, [user]);
 
   useEffect(() => {
     fetchConversations(1, true);
@@ -232,16 +200,6 @@ const Conversations = () => {
   const handleRetry = useCallback(() => {
     fetchConversations(1, true);
   }, [fetchConversations]);
-
-  const handleDeleteConversation = useCallback(async (otherUserId) => {
-    try {
-      await axios.delete(`https://muterianc.pythonanywhere.com/api/conversations/${otherUserId}`);
-      setConversations(prev => prev.filter(conv => conv.user_id !== otherUserId));
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-      setError('Failed to delete conversation');
-    }
-  }, []);
 
   const handleLoadMore = useCallback(() => {
     if (!loading && hasMore) {
@@ -356,7 +314,7 @@ const Conversations = () => {
               <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <MessageCircle className="h-10 w-10 text-blue-500" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-9 00 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {searchTerm ? 'No matching conversations' : 'No conversations yet'}
               </h3>
               <p className="text-gray-500 max-w-sm mx-auto mb-4">
@@ -382,7 +340,6 @@ const Conversations = () => {
                   <ConversationItem 
                     key={conversation.id || conversation.user_id} 
                     conversation={conversation}
-                    onDelete={handleDeleteConversation}
                   />
                 ))}
               </div>
