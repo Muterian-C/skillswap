@@ -167,46 +167,58 @@ const Conversations = () => {
     };
   }, []);
 
-  const fetchConversations = useCallback(async (pageNum = 1, isRefresh = false) => {
-    if (!user) return;
+ const fetchConversations = useCallback(async (pageNum = 1, isRefresh = false) => {
+  if (!user) return;
 
-    try {
-      if (pageNum === 1 || isRefresh) {
-        setLoading(true);
-      }
-      setError(null);
-      
-      const res = await axios.get(
-        `https://muterianc.pythonanywhere.com/api/conversations/${user.id}?page=${pageNum}&limit=20`,
-        { timeout: 10000 }
-      );
-
-      if (res.data.success) {
-        if (pageNum === 1 || isRefresh) {
-          setConversations(res.data.conversations || []);
-        } else {
-          setConversations(prev => [...prev, ...res.data.conversations]);
-        }
-        setHasMore(res.data.conversations.length === 20);
-        setPage(pageNum + 1);
-      } else {
-        setError(res.data.message || 'Failed to load conversations');
-      }
-    } catch (err) {
-      console.error("Error fetching conversations:", err);
-      if (err.code === 'ECONNABORTED') {
-        setError('Request timeout - please check your connection');
-      } else if (err.response?.status === 401) {
-        setError('Session expired - please log in again');
-      } else if (err.response?.status === 404) {
-        setError('User not found');
-      } else {
-        setError(err.response?.data?.message || 'Unable to load conversations');
-      }
-    } finally {
-      setLoading(false);
+  try {
+    if (pageNum === 1 || isRefresh) {
+      setLoading(true);
     }
-  }, [user]);
+    setError(null);
+    
+    const token = localStorage.getItem('token'); // or your token storage method
+    const res = await axios.get(
+      `https://muterianc.pythonanywhere.com/api/conversations/${user.id}?page=${pageNum}&limit=20`,
+      {
+        timeout: 10000,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    // THIS BLOCK GOES HERE:
+    if (res.data.success) {
+      if (pageNum === 1 || isRefresh) {
+        setConversations(res.data.conversations || []);
+      } else {
+        setConversations(prev => [...prev, ...res.data.conversations]);
+      }
+      // Update hasMore based on pagination info
+      setHasMore(res.data.pagination && pageNum < res.data.pagination.pages);
+      setPage(pageNum + 1);
+    } else {
+      setError(res.data.message || 'Failed to load conversations');
+    }
+
+  } catch (err) {
+    // THIS CATCH BLOCK GOES HERE:
+    console.error("Error fetching conversations:", err);
+    if (err.code === 'ECONNABORTED') {
+      setError('Request timeout - please check your connection');
+    } else if (err.response?.status === 401) {
+      setError('Session expired - please log in again');
+    } else if (err.response?.status === 404) {
+      setError('User not found');
+    } else if (err.response?.status === 500) {
+      setError('Server error - please try again later');
+    } else {
+      setError(err.response?.data?.error || 'Unable to load conversations');
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [user]);
 
   useEffect(() => {
     fetchConversations(1, true);
