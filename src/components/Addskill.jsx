@@ -5,7 +5,8 @@ import Navbar from './Navbar';
 
 const AddSkill = () => {
   // Mock user for demo
-  const user = { id: 1 };
+  const { user } = useAuth(); // gets the logged-in user from AuthContext
+
 
   const [form, setForm] = useState({
     skill_name: '',
