@@ -24,7 +24,7 @@ const EditSkill = () => {
 
   useEffect(() => {
     // Fetch skill data by ID
-    axios.get(`https://muterianc.pythonanywhere.com/api/skills/${id}`)
+    axios.get(`https://muterianc.pythonanywhere.com/api/skill/${id}`)
       .then(res => {
         setSkillData(res.data.skill);
       })
@@ -51,7 +51,7 @@ const EditSkill = () => {
       // TEMP: send user_id as pin
       formData.append('user_id', user.id);
 
-      await axios.post(`https://muterianc.pythonanywhere.com/api/edit_skill/${id}`, formData, {
+      await axios.put(`https://muterianc.pythonanywhere.com/api/edit_skill/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
