@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Import useAuth hook
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
-
-
 
 const Skills = () => {
   const [skills, setSkills] = useState([]);
@@ -15,14 +13,10 @@ const Skills = () => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
-
   // Get authentication state from context
   const { user, token } = useAuth();
-  const currentUser = user;          // alias to match existing code
-  const isAuthenticated = !!user;    // true if logged in
-
-
-
+  const currentUser = user;
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -40,7 +34,6 @@ const Skills = () => {
     };
 
     fetchSkills();
-
     const timer = setTimeout(() => setIsVisible(true), 300);
     return () => clearTimeout(timer);
   }, []);
@@ -124,14 +117,9 @@ const Skills = () => {
   );
 
   const SkillCard = ({ skill, index }) => {
-    // Check if current user owns this skill
     const isOwnSkill = currentUser && skill.user_id === currentUser.id;
 
     return (
-      <div>
-        <Navbar />
-
-        <div className="h-16"></div>
       <div
         className="col-md-4 mb-4"
         style={{
@@ -140,7 +128,6 @@ const Skills = () => {
           transition: `all 0.6s ease ${index * 0.1}s`
         }}
       >
-        
         <div
           className="card shadow-sm h-100 border-0"
           style={{
@@ -223,7 +210,6 @@ const Skills = () => {
                 📚 Learn More
               </button>
 
-              {/* Only show contact button for others' skills */}
               {!isOwnSkill && (
                 <button
                   className="btn btn-outline-primary"
@@ -233,7 +219,6 @@ const Skills = () => {
                       return;
                     }
 
-                    // Check if user_id exists before navigating
                     if (!skill.user_id) {
                       console.error("Cannot contact: user_id is undefined", skill);
                       alert("Sorry, cannot contact this user at the moment.");
@@ -247,8 +232,6 @@ const Skills = () => {
                 </button>
               )}
 
-
-              {/* Show edit button for own skills */}
               {isOwnSkill && (
                 <button className="btn btn-outline-success">
                   ✏️ Edit
@@ -258,76 +241,79 @@ const Skills = () => {
           </div>
         </div>
       </div>
-      </div>
     );
   };
 
   return (
-    <div className="container my-5">
-      <div className="text-center mb-5">
-        <h2 className="display-4 fw-bold text-primary mb-3">Available Skills</h2>
-        <p className="lead text-muted mb-4">Discover amazing skills from our community</p>
+    <div>
+      <Navbar />
+      <div className="h-16"></div> {/* Spacer for fixed navbar */}
+      
+      <div className="container my-5">
+        <div className="text-center mb-5">
+          <h2 className="display-4 fw-bold text-primary mb-3">Available Skills</h2>
+          <p className="lead text-muted mb-4">Discover amazing skills from our community</p>
 
-        {/* Show "Add Skill" button if authenticated */}
-        {isAuthenticated && (
-          <div className="mb-4">
-            <a href="/addskills" className="btn btn-success">
-              ➕ Add Your Skill
-            </a>
-          </div>
-        )}
+          {isAuthenticated && (
+            <div className="mb-4">
+              <a href="/addskills" className="btn btn-success">
+                ➕ Add Your Skill
+              </a>
+            </div>
+          )}
 
-        <div className="row justify-content-center">
-          <div className="col-md-6 mb-3">
-            <div className="input-group shadow-sm">
-              <span className="input-group-text bg-primary text-white">
-                🔍
-              </span>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search skills..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="row justify-content-center">
+            <div className="col-md-6 mb-3">
+              <div className="input-group shadow-sm">
+                <span className="input-group-text bg-primary text-white">
+                  🔍
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search skills..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="col-md-3 mb-3">
+              <select
+                className="form-select shadow-sm"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'all' ? 'All Categories' : category}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div className="col-md-3 mb-3">
-            <select
-              className="form-select shadow-sm"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category === 'all' ? 'All Categories' : category}
-                </option>
-              ))}
-            </select>
-          </div>
+
+          {!loading && !error && (
+            <div className="text-muted">
+              {filteredSkills.length} skill{filteredSkills.length !== 1 ? 's' : ''} found
+            </div>
+          )}
         </div>
 
-        {!loading && !error && (
-          <div className="text-muted">
-            {filteredSkills.length} skill{filteredSkills.length !== 1 ? 's' : ''} found
+        {loading ? (
+          <LoadingSkeletons />
+        ) : error ? (
+          <ErrorMessage />
+        ) : filteredSkills.length > 0 ? (
+          <div className="row">
+            {filteredSkills.map((skill, index) => (
+              <SkillCard key={skill.id || index} skill={skill} index={index} />
+            ))}
           </div>
+        ) : (
+          <EmptyState />
         )}
+        <footer />
       </div>
-
-      {loading ? (
-        <LoadingSkeletons />
-      ) : error ? (
-        <ErrorMessage />
-      ) : filteredSkills.length > 0 ? (
-        <div className="row">
-          {filteredSkills.map((skill, index) => (
-            <SkillCard key={skill.id || index} skill={skill} index={index} />
-          ))}
-        </div>
-      ) : (
-        <EmptyState />
-      )}
-      <footer />
     </div>
   );
 };
