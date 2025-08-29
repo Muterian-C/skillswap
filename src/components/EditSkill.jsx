@@ -84,6 +84,91 @@ const EditSkill = () => {
         <h2 className="mb-4 text-primary">Edit Skill</h2>
         <form onSubmit={handleSubmit} encType="multipart/form-data">
           {/* ... rest of your form remains the same ... */}
+
+          <div className="mb-3">
+            <label className="form-label">Skill Name</label>
+            <input
+              type="text"
+              className="form-control"
+              name="skill_name"
+              value={skillData.skill_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Category</label>
+            <input
+              type="text"
+              className="form-control"
+              name="category"
+              value={skillData.category}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-control"
+              name="description"
+              value={skillData.description}
+              onChange={handleChange}
+              rows={4}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Difficulty</label>
+            <select
+              className="form-select"
+              name="difficulty"
+              value={skillData.difficulty}
+              onChange={handleChange}
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Proficiency</label>
+            <input
+              type="number"
+              className="form-control"
+              name="proficiency"
+              value={skillData.proficiency}
+              onChange={handleChange}
+              min={1}
+              max={10}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Years of Experience</label>
+            <input
+              type="number"
+              className="form-control"
+              name="years_experience"
+              value={skillData.years_experience}
+              onChange={handleChange}
+              min={0}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Skill Photo</label>
+            <input
+              type="file"
+              className="form-control"
+              name="skill_photo"
+              onChange={handleChange}
+            />
+          </div>
+
+          <button type="submit" className="btn btn-success">Update Skill</button>
         </form>
       </div>
     </div>
