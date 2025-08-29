@@ -18,6 +18,11 @@ const Skills = () => {
   const currentUser = user;
   const isAuthenticated = !!user;
 
+  const handleEdit = (skill) => {
+    // Navigate to edit skill page with the skill id
+    navigate(`/edit-skill/${skill.id}`);
+  };
+
   useEffect(() => {
     const fetchSkills = async () => {
       try {
@@ -235,7 +240,10 @@ const Skills = () => {
               )}
 
               {isOwnSkill && (
-                <button className="btn btn-outline-success">
+                <button
+                  className="btn btn-outline-success"
+                  onClick={() => handleEdit(skill)}
+                >
                   ✏️ Edit
                 </button>
               )}
