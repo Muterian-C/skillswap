@@ -8,6 +8,7 @@ import Navbar from './Navbar';
 
 
 
+
 const Profile = () => {
   const { user, token, logout } = useAuth(); // ⬅️ grab user & token from context
   const [userSkills, setUserSkills] = useState([]);
@@ -15,7 +16,29 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [userPosts, setUserPosts] = useState([]);
+
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+
+    try {
+      await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+
+      setUserPosts(prev => prev.filter(post => post.id !== postId));
+      setSuccess('Post deleted successfully');
+      setError('');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete post');
+      console.error("Delete error:", err);
+    }
+  };
+
+
 
 
   useEffect(() => {
@@ -38,6 +61,16 @@ const Profile = () => {
         );
 
         setUserSkills(skillsResponse.data.skills || []);
+
+        // ✅ Fetch user posts
+        const postsResponse = await axios.get(
+          `https://muterianc.pythonanywhere.com/api/posts/user/${userResponse.data.user.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUserPosts(postsResponse.data || []);
+
+
+
       } catch (err) {
         console.error("Auth error:", err);
         setError('Session expired. Please login again.');
@@ -248,6 +281,97 @@ const Profile = () => {
               </div>
             )}
           </div>
+
+
+          {/* User Posts Section */}
+          <div className="mt-12">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Your Posts</h2>
+              <Link
+                to="/createpost"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Post
+              </Link>
+            </div>
+
+            {userPosts.length === 0 ? (
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="px-6 py-12 text-center">
+                  <div className="mx-auto h-12 w-12 text-gray-400">
+                    <PlusCircle className="h-full w-full" />
+                  </div>
+                  <h3 className="mt-2 text-lg font-medium text-gray-900">No posts yet</h3>
+                  <p className="mt-1 text-gray-500">Get started by creating your first post.</p>
+                  <div className="mt-6">
+                    <Link
+                      to="/createpost"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Create Post
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {userPosts.map((post) => (
+                  <div key={post.id} className="bg-white shadow rounded-lg overflow-hidden">
+                    {post.image_url ? (
+                      <img
+                        className="h-48 w-full object-cover"
+                        src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
+                        alt="Post"
+                      />
+                    ) : (
+                      <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400">No image</span>
+                      </div>
+                    )}
+
+                    <div className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">Post #{post.id}</h3>
+                          <p className="mt-1 text-sm text-gray-500">
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </p>
+
+                        </div>
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-500">
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="mt-4 text-sm text-gray-600 line-clamp-3">
+                        {post.content || 'No content provided.'}
+                      </p>
+                      <div className="mt-6 flex justify-between">
+                        <button
+                          onClick={() => navigate(`/edit-post/${post.id}`)}
+                          className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeletePost(post.id)}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
 
 
           {/* ... keep the rest of your Skills UI the same ... */}
