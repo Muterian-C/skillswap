@@ -34,17 +34,23 @@ const CreatePost = ({ onPostCreated }) => {
     setLoading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('content', content);
-    if (image) formData.append('image', image);
+     const formData = new FormData();
+  formData.append("content", content);
+  if (image) {
+    formData.append("image", image);
+  }
 
-    try {
-      const res = await axios.post('https://muterianc.pythonanywhere.com/api/createPosts', formData, {
+  try {
+    const res = await axios.post(
+      "https://muterianc.pythonanywhere.com/api/createPosts",
+      formData,
+      {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+          Authorization: `Bearer ${token}`,   // ✅ must include
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
       
       onPostCreated(res.data.post_id);
       setContent('');
