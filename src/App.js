@@ -16,6 +16,7 @@ import Messages from "./components/chat";
 import { NotificationProvider } from './context/NotificationContext';
 import Conversations from "./components/Conversations";
 import EditSkill from './components/EditSkill';
+import CreatePost from './components/CreatePost';
 
 
 function App() {
@@ -31,6 +32,15 @@ function App() {
               <Route path="/signin" element={<Signin />} />
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/messages/:receiverId" element={<Messages />} />
+              <Route
+                path="/createpost"
+                element={
+                  <ProtectedRoute>
+                    <CreatePost />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/addskills"
                 element={
