@@ -1,13 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { Helmet } from 'react-helmet';
+import axios from 'axios';
+import PostCard from './PostCard';
+import { useAuth } from '../context/AuthContext';
+import { ArrowDown } from 'lucide-react'; // Import an icon for the button
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // ✅ Track login state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const { token } = useAuth();
+  const postsSectionRef = useRef(null); // Ref for the posts section
 
   // ✅ Trigger fade-in animation
   useEffect(() => {
@@ -29,6 +37,46 @@ const Home = () => {
       }
     }
   }, []);
+
+  // ✅ Fetch posts
+  const fetchPosts = async () => {
+    setPostsLoading(true);
+    try {
+      const res = await axios.get('https://muterianc.pythonanywhere.com/api/posts', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      setPosts(res.data.posts);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setPosts(posts.filter(p => p.id !== postId));
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Error deleting post');
+    }
+  };
+
+  // ✅ Scroll to posts section
+  const scrollToPosts = () => {
+    postsSectionRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, [token]);
 
   // ✅ Handle image fallback
   const handleImageError = (name) => {
@@ -96,9 +144,20 @@ const Home = () => {
                 </>
               )}
             </div>
+
+            {/* ✅ NEW: Scroll to Posts Button */}
+            <div className="mt-5">
+              <button
+                onClick={scrollToPosts}
+                className="btn btn-outline-secondary btn-lg d-flex align-items-center mx-auto"
+                style={{ transition: 'all 0.3s ease' }}
+              >
+                <ArrowDown className="me-2" size={20} />
+                View Community Posts
+              </button>
+            </div>
           </div>
         </section>
-
 
         {/* WHY CHOOSE SECTION */}
         <section className="container my-5 py-5">
@@ -168,10 +227,56 @@ const Home = () => {
           </div>
         </section>
 
+        {/* ✅ POSTS FEED SECTION - NEWLY ADDED (with ref) */}
+        <section ref={postsSectionRef} className="container my-5 py-5">
+          <div className="row">
+            <div className="col-12 text-center mb-5">
+              <h2 className="display-5 fw-bold">Community Posts</h2>
+              <p className="text-muted">See what others are sharing in the community</p>
+              
+              {/* ✅ Add Create Post button in the posts section too */}
+              {isLoggedIn && (
+                <Link to="/createpost" className="btn btn-primary btn-lg mt-2">
+                  ✨ Create New Post
+                </Link>
+              )}
+            </div>
+            
+            {postsLoading ? (
+              <div className="text-center">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading posts...</span>
+                </div>
+                <p className="mt-2">Loading posts...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center">
+                <p className="text-muted">No posts yet. Be the first to share something!</p>
+                {isLoggedIn && (
+                  <Link to="/createpost" className="btn btn-primary mt-3">
+                    Create Your First Post
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="row">
+                {posts.map(post => (
+                  <div key={post.id} className="col-lg-6 col-xl-4 mb-4">
+                    <PostCard 
+                      post={post} 
+                      onDelete={token && post.user_id ? () => handleDelete(post.id) : null} 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* TESTIMONIAL / CTA */}
         <section className="py-5 text-center text-white" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #198754 100%)' }}>
           <div className="container">
-            <h2 className="display-4 fw-bold">“Everyone has something to teach — and something to learn.”</h2>
+            <h2 className="display-4 fw-bold">"Everyone has something to teach — and something to learn."</h2>
             <p className="lead mt-3">Join thousands of learners and teachers building skill communities.</p>
 
             {isLoggedIn ? (
