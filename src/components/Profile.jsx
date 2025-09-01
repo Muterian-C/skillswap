@@ -334,21 +334,26 @@ const Profile = () => {
                     <div className="p-6">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg font-medium text-gray-900">Post #{post.id}</h3>
+                          {/* ✅ FIXED: Show content preview instead of "Post #5" */}
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {post.content ? (
+                              post.content.length > 30
+                                ? `${post.content.substring(0, 30)}...`
+                                : post.content
+                            ) : 'Your Post'}
+                          </h3>
                           <p className="mt-1 text-sm text-gray-500">
                             {new Date(post.created_at).toLocaleDateString()}
                           </p>
 
                         </div>
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium text-gray-500">
-                            {new Date(post.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
                       </div>
-                      <p className="mt-4 text-sm text-gray-600 line-clamp-3">
+
+                      {/* Show full content in the body */}
+                      <p className="mt-4 text-sm text-gray-600">
                         {post.content || 'No content provided.'}
                       </p>
+
                       <div className="mt-6 flex justify-between">
                         <button
                           onClick={() => navigate(`/edit-post/${post.id}`)}
@@ -371,9 +376,7 @@ const Profile = () => {
               </div>
             )}
           </div>
-
-
-
+          
           {/* ... keep the rest of your Skills UI the same ... */}
         </div>
       </div>
