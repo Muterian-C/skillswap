@@ -17,7 +17,7 @@ const PostCard = ({ post, onDelete }) => {
       <p className="mb-2">{post.content}</p>
       {post.image_url && (
         <img
-          src={`/static/posts/${post.image_url}`}
+          src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
           alt="Post"
           className="w-full max-h-96 object-cover rounded"
         />
