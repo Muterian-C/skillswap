@@ -1,12 +1,186 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
-import PostCard from './PostCard';
 import { useAuth } from '../context/AuthContext';
 
+// Twitter/X-like Post Card Component
+const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likes_count || 0);
+  const [showOptions, setShowOptions] = useState(false);
+  const optionsRef = useRef(null);
+
+  // Check if current user has liked this post
+  useEffect(() => {
+    if (currentUser && post.likes) {
+      setIsLiked(post.likes.some(like => like.user_id === currentUser.id));
+    }
+  }, [currentUser, post.likes]);
+
+  // Close options when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (optionsRef.current && !optionsRef.current.contains(event.target)) {
+        setShowOptions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLike = () => {
+    if (!currentUser) return;
+    
+    setIsLiked(!isLiked);
+    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    if (onLike) onLike(post.id, !isLiked);
+  };
+
+  const formatCount = (count) => {
+    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+    return count;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h`;
+    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="post-card border-b border-gray-200 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-200">
+      <div className="flex">
+        {/* Avatar */}
+        <div className="flex-shrink-0 mr-3">
+          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+            {post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U'}
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="flex-grow">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              <h3 className="font-bold text-gray-900 dark:text-white">{post.author_name}</h3>
+              <span className="text-gray-500">@{post.author_name.toLowerCase().replace(/\s+/g, '')}</span>
+              <span className="text-gray-500">·</span>
+              <span className="text-gray-500">{formatDate(post.created_at)}</span>
+            </div>
+            
+            {/* Options dropdown */}
+            {onDelete && (
+              <div className="relative" ref={optionsRef}>
+                <button 
+                  className="text-gray-500 hover:text-blue-500 rounded-full p-2 hover:bg-blue-50 dark:hover:bg-gray-800"
+                  onClick={() => setShowOptions(!showOptions)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                  </svg>
+                </button>
+                
+                {showOptions && (
+                  <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10 border border-gray-200 dark:border-gray-700">
+                    <button
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => {
+                        setShowOptions(false);
+                        onDelete(post.id);
+                      }}
+                    >
+                      Delete Post
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <p className="text-gray-900 dark:text-white mt-1 mb-3">{post.content}</p>
+          
+          {post.image_url && (
+            <div className="mb-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <img
+                src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
+                alt="Post"
+                className="w-full h-auto max-h-96 object-cover"
+              />
+            </div>
+          )}
+          
+          {/* Engagement buttons */}
+          <div className="flex justify-between max-w-md mt-3">
+            <button 
+              className="flex items-center text-gray-500 hover:text-blue-500 group"
+              onClick={() => onReply && onReply(post)}
+            >
+              <div className="p-2 rounded-full group-hover:bg-blue-50 dark:group-hover:bg-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <span className="ml-1 text-sm">{formatCount(post.replies_count || 0)}</span>
+            </button>
+            
+            <button 
+              className="flex items-center text-gray-500 hover:text-green-500 group"
+              onClick={() => {}}
+            >
+              <div className="p-2 rounded-full group-hover:bg-green-50 dark:group-hover:bg-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <span className="ml-1 text-sm">{formatCount(post.reposts_count || 0)}</span>
+            </button>
+            
+            <button 
+              className={`flex items-center group ${isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+              onClick={handleLike}
+            >
+              <div className="p-2 rounded-full group-hover:bg-red-50 dark:group-hover:bg-gray-800">
+                {isLiked ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                )}
+              </div>
+              <span className="ml-1 text-sm">{formatCount(likeCount)}</span>
+            </button>
+            
+            <button className="flex items-center text-gray-500 hover:text-blue-500 group">
+              <div className="p-2 rounded-full group-hover:bg-blue-50 dark:group-hover:bg-gray-800">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Twitter/X-like Posts Feed Component
 const PostsFeed = () => {
-  const { token } = useAuth();
+  const { token, user: currentUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [composingPost, setComposingPost] = useState(false);
+  const [newPostContent, setNewPostContent] = useState('');
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyContent, setReplyContent] = useState('');
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -35,40 +209,203 @@ const PostsFeed = () => {
     }
   };
 
+  const handleLike = async (postId, isLiked) => {
+    try {
+      if (isLiked) {
+        await axios.post(`https://muterianc.pythonanywhere.com/api/posts/${postId}/like`, {}, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } else {
+        await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}/like`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreatePost = async () => {
+    if (!newPostContent.trim()) return;
+    
+    try {
+      const res = await axios.post('https://muterianc.pythonanywhere.com/api/posts', {
+        content: newPostContent
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      setPosts([res.data.post, ...posts]);
+      setNewPostContent('');
+      setComposingPost(false);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Error creating post');
+    }
+  };
+
+  const handleReply = async (post) => {
+    if (!replyContent.trim()) return;
+    
+    try {
+      const res = await axios.post(`https://muterianc.pythonanywhere.com/api/posts/${post.id}/reply`, {
+        content: replyContent
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      // Update the post with the new reply
+      const updatedPosts = posts.map(p => {
+        if (p.id === post.id) {
+          return {
+            ...p,
+            replies_count: (p.replies_count || 0) + 1
+          };
+        }
+        return p;
+      });
+      
+      setPosts(updatedPosts);
+      setReplyContent('');
+      setReplyingTo(null);
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Error posting reply');
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
   }, []);
 
   if (loading) return (
-    <div className="text-center py-5">
-      <div className="spinner-border text-primary" role="status">
-        <span className="visually-hidden">Loading posts...</span>
-      </div>
-      <p className="mt-2">Loading posts...</p>
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   );
 
   return (
-    <div className="container py-5">
-      <div className="row">
-        <div className="col-12 text-center mb-5">
-          <h1 className="display-4 fw-bold">Community Posts</h1>
-          <p className="lead text-muted">See what everyone is sharing</p>
-        </div>
+    <div className="max-w-2xl mx-auto bg-white dark:bg-black min-h-screen">
+      {/* Header */}
+      <div className="sticky top-0 bg-white dark:bg-black bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm p-4 border-b border-gray-200 dark:border-gray-800 z-10">
+        <h1 className="text-xl font-bold">Home</h1>
       </div>
       
+      {/* Compose post */}
+      {token && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+          {composingPost ? (
+            <div className="mb-4">
+              <textarea
+                className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-transparent resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="What's happening?"
+                rows="3"
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
+                autoFocus
+              />
+              <div className="flex justify-end mt-2 space-x-3">
+                <button
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-800 rounded-full text-gray-700 dark:text-gray-300 font-medium"
+                  onClick={() => setComposingPost(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 bg-blue-500 rounded-full text-white font-medium disabled:opacity-50"
+                  onClick={handleCreatePost}
+                  disabled={!newPostContent.trim()}
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex space-x-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                  {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              </div>
+              <button
+                className="flex-grow text-left text-gray-500 dark:text-gray-400 p-3 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900"
+                onClick={() => setComposingPost(true)}
+              >
+                What's happening?
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Posts feed */}
       {posts.length === 0 ? (
-        <div className="text-center py-5">
-          <p className="text-muted fs-5">No posts yet. Be the first to share something!</p>
+        <div className="text-center py-10 px-4">
+          <div className="mx-auto w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">No posts yet</h3>
+          <p className="text-gray-500 dark:text-gray-400">Be the first to share something!</p>
+          {token && (
+            <button
+              className="mt-4 px-4 py-2 bg-blue-500 rounded-full text-white font-medium"
+              onClick={() => setComposingPost(true)}
+            >
+              Create post
+            </button>
+          )}
         </div>
       ) : (
-        <div className="row">
+        <div>
           {posts.map(post => (
-            <div key={post.id} className="col-lg-8 col-xl-6 mx-auto mb-4">
+            <div key={post.id}>
               <PostCard 
                 post={post} 
-                onDelete={token && post.user_id ? () => handleDelete(post.id) : null} 
+                onDelete={token && post.user_id === currentUser?.id ? handleDelete : null}
+                onLike={handleLike}
+                onReply={setReplyingTo}
+                currentUser={currentUser}
               />
+              
+              {/* Reply composer */}
+              {replyingTo && replyingTo.id === post.id && (
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                  <div className="flex">
+                    <div className="flex-shrink-0 mr-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                    </div>
+                    <div className="flex-grow">
+                      <textarea
+                        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-transparent resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        placeholder="Post your reply"
+                        rows="2"
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="flex justify-end mt-2 space-x-3">
+                        <button
+                          className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-800 rounded-full text-gray-700 dark:text-gray-300 font-medium"
+                          onClick={() => setReplyingTo(null)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="px-3 py-1 text-sm bg-blue-500 rounded-full text-white font-medium disabled:opacity-50"
+                          onClick={() => handleReply(post)}
+                          disabled={!replyContent.trim()}
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
