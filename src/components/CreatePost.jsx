@@ -31,7 +31,7 @@ const CreatePost = ({ onPostCreated }) => {
       setError('Post content is required');
       return;
     }
-    
+
     setLoading(true);
     setError('');
 
@@ -52,7 +52,7 @@ const CreatePost = ({ onPostCreated }) => {
           },
         }
       );
-      
+
       onPostCreated(res.data.post_id);
       setContent('');
       setImage(null);
@@ -65,18 +65,19 @@ const CreatePost = ({ onPostCreated }) => {
     }
   };
 
-  
+
   const charCount = content.length;
   const maxChars = 500;
   const isOverLimit = charCount > maxChars;
 
   return (
     <div className="relative">
-      {/* Main Form Container */}
-      <div className={`
-        bg-white rounded-2xl shadow-lg border transition-all duration-300 ease-in-out
-        ${focused ? 'shadow-xl border-blue-200 ring-2 ring-blue-100' : 'border-gray-100 hover:shadow-lg'}
-      `}>
+      {/* ✅ ADD THIS FORM WRAPPER WITH onSubmit HANDLER */}
+      <form onSubmit={handleSubmit} className={`
+      bg-white rounded-2xl shadow-lg border transition-all duration-300 ease-in-out
+      ${focused ? 'shadow-xl border-blue-200 ring-2 ring-blue-100' : 'border-gray-100 hover:shadow-lg'}
+    `}>
+
         {/* Header */}
         <div className="px-6 pt-6 pb-4">
           <div className="flex items-center space-x-3">
@@ -105,26 +106,26 @@ const CreatePost = ({ onPostCreated }) => {
           <div className="relative mb-4">
             <textarea
               className={`
-                w-full border-2 p-4 rounded-xl text-gray-900 placeholder-gray-400
-                resize-none transition-all duration-200 ease-in-out
-                focus:outline-none focus:ring-0
-                ${focused ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}
-                ${isOverLimit ? 'border-red-300 bg-red-50/30' : ''}
-              `}
+              w-full border-2 p-4 rounded-xl text-gray-900 placeholder-gray-400
+              resize-none transition-all duration-200 ease-in-out
+              focus:outline-none focus:ring-0
+              ${focused ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}
+              ${isOverLimit ? 'border-red-300 bg-red-50/30' : ''}
+            `}
               placeholder="Share something interesting..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               rows={focused || content ? 4 : 3}
-              maxLength={maxChars + 50} // Allow slight overflow for better UX
+              maxLength={maxChars + 50}
             />
-            
+
             {/* Character Counter */}
             <div className={`
-              absolute bottom-3 right-3 text-xs font-medium transition-colors duration-200
-              ${isOverLimit ? 'text-red-500' : charCount > maxChars * 0.8 ? 'text-yellow-600' : 'text-gray-400'}
-            `}>
+            absolute bottom-3 right-3 text-xs font-medium transition-colors duration-200
+            ${isOverLimit ? 'text-red-500' : charCount > maxChars * 0.8 ? 'text-yellow-600' : 'text-gray-400'}
+          `}>
               {charCount}/{maxChars}
             </div>
           </div>
@@ -139,21 +140,21 @@ const CreatePost = ({ onPostCreated }) => {
                   className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
+
                 {/* Remove Button */}
                 <button
                   type="button"
                   onClick={removeImage}
                   className="
-                    absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white 
-                    p-2 rounded-full shadow-lg transition-all duration-200
-                    hover:scale-110 active:scale-95
-                  "
+                  absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white 
+                  p-2 rounded-full shadow-lg transition-all duration-200
+                  hover:scale-110 active:scale-95
+                "
                 >
                   <X size={16} />
                 </button>
               </div>
-              
+
               {/* Image Info */}
               <div className="mt-2 flex items-center text-sm text-gray-600">
                 <Image size={14} className="mr-1" />
@@ -166,10 +167,10 @@ const CreatePost = ({ onPostCreated }) => {
           <div className="flex items-center justify-between pt-4 border-t border-gray-100">
             {/* Image Upload Button */}
             <label className="
-              flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 
-              hover:bg-blue-50 rounded-lg cursor-pointer transition-all duration-200
-              group
-            ">
+            flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 
+            hover:bg-blue-50 rounded-lg cursor-pointer transition-all duration-200
+            group
+          ">
               <Image size={20} className="group-hover:scale-110 transition-transform duration-200" />
               <span className="font-medium">Add Photo</span>
               <input
@@ -180,19 +181,19 @@ const CreatePost = ({ onPostCreated }) => {
               />
             </label>
 
-            {/* Post Button */}
+            {/* Post Button - This will now work as a submit button */}
             <button
               type="submit"
               disabled={loading || !content.trim() || isOverLimit}
               className={`
-                relative flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold
-                transition-all duration-200 transform hover:scale-105 active:scale-95
-                disabled:transform-none disabled:hover:scale-100
-                ${loading || !content.trim() || isOverLimit
+              relative flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold
+              transition-all duration-200 transform hover:scale-105 active:scale-95
+              disabled:transform-none disabled:hover:scale-100
+              ${loading || !content.trim() || isOverLimit
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
                 }
-              `}
+            `}
             >
               {loading ? (
                 <>
@@ -208,7 +209,8 @@ const CreatePost = ({ onPostCreated }) => {
             </button>
           </div>
         </div>
-      </div>
+
+      </form> {/* ✅ CLOSING FORM TAG */}
 
       {/* Loading Overlay */}
       {loading && (
