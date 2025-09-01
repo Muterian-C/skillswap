@@ -1,21 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { Helmet } from 'react-helmet';
-import axios from 'axios';
-import PostCard from './PostCard';
-import { useAuth } from '../context/AuthContext';
-import { ArrowDown } from 'lucide-react'; // Import an icon for the button
+import { MessageSquare } from 'lucide-react'; // Import an icon for the posts button
 
 const Home = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [posts, setPosts] = useState([]);
-  const [postsLoading, setPostsLoading] = useState(true);
-  const { token } = useAuth();
-  const postsSectionRef = useRef(null); // Ref for the posts section
 
   // ✅ Trigger fade-in animation
   useEffect(() => {
@@ -37,46 +30,6 @@ const Home = () => {
       }
     }
   }, []);
-
-  // ✅ Fetch posts
-  const fetchPosts = async () => {
-    setPostsLoading(true);
-    try {
-      const res = await axios.get('https://muterianc.pythonanywhere.com/api/posts', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      setPosts(res.data.posts);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-    } finally {
-      setPostsLoading(false);
-    }
-  };
-
-  const handleDelete = async (postId) => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
-    try {
-      await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      setPosts(posts.filter(p => p.id !== postId));
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.error || 'Error deleting post');
-    }
-  };
-
-  // ✅ Scroll to posts section
-  const scrollToPosts = () => {
-    postsSectionRef.current?.scrollIntoView({ 
-      behavior: 'smooth',
-      block: 'start'
-    });
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, [token]);
 
   // ✅ Handle image fallback
   const handleImageError = (name) => {
@@ -129,8 +82,13 @@ const Home = () => {
                   <Link to="/skills" className="btn btn-outline-primary btn-lg me-3 px-4 py-2">
                     🔍 Explore Skills
                   </Link>
-                  <Link to="/addskills" className="btn btn-outline-success btn-lg px-4 py-2">
+                  <Link to="/addskills" className="btn btn-outline-success btn-lg me-3 px-4 py-2">
                     💡 Share Your Skill
+                  </Link>
+                  {/* ✅ NEW: View All Posts Button */}
+                  <Link to="/posts" className="btn btn-info btn-lg px-4 py-2 text-white">
+                    <MessageSquare className="me-2" size={20} />
+                    View Posts
                   </Link>
                 </>
               ) : (
@@ -138,23 +96,16 @@ const Home = () => {
                   <Link to="/signup" className="btn btn-primary btn-lg me-3 px-4 py-2">
                     🚀 Join Now
                   </Link>
-                  <Link to="/addskills" className="btn btn-outline-success btn-lg px-4 py-2">
+                  <Link to="/addskills" className="btn btn-outline-success btn-lg me-3 px-4 py-2">
                     💡 Share Your Skill
+                  </Link>
+                  {/* ✅ NEW: View All Posts Button for non-logged in users too */}
+                  <Link to="/posts" className="btn btn-info btn-lg px-4 py-2 text-white">
+                    <MessageSquare className="me-2" size={20} />
+                    View Posts
                   </Link>
                 </>
               )}
-            </div>
-
-            {/* ✅ NEW: Scroll to Posts Button */}
-            <div className="mt-5">
-              <button
-                onClick={scrollToPosts}
-                className="btn btn-outline-secondary btn-lg d-flex align-items-center mx-auto"
-                style={{ transition: 'all 0.3s ease' }}
-              >
-                <ArrowDown className="me-2" size={20} />
-                View Community Posts
-              </button>
             </div>
           </div>
         </section>
@@ -227,49 +178,54 @@ const Home = () => {
           </div>
         </section>
 
-        {/* ✅ POSTS FEED SECTION - NEWLY ADDED (with ref) */}
-        <section ref={postsSectionRef} className="container my-5 py-5">
-          <div className="row">
-            <div className="col-12 text-center mb-5">
-              <h2 className="display-5 fw-bold">Community Posts</h2>
-              <p className="text-muted">See what others are sharing in the community</p>
-              
-              {/* ✅ Add Create Post button in the posts section too */}
-              {isLoggedIn && (
-                <Link to="/createpost" className="btn btn-primary btn-lg mt-2">
-                  ✨ Create New Post
-                </Link>
-              )}
+        {/* ✅ NEW: COMMUNITY POSTS PREVIEW SECTION */}
+        <section className="bg-light py-5">
+          <div className="container text-center">
+            <h2 className="display-5 fw-bold mb-3">Community Posts</h2>
+            <p className="lead text-muted mb-4">See what our community is sharing and discussing</p>
+            
+            <div className="row justify-content-center mb-4">
+              <div className="col-md-8">
+                <div className="card border-0 shadow-sm">
+                  <div className="card-body p-5">
+                    <MessageSquare size={48} className="text-primary mb-3" />
+                    <h4 className="text-primary mb-3">Join the Conversation</h4>
+                    <p className="text-muted mb-4">
+                      Discover insights, share experiences, and connect with other skill enthusiasts 
+                      through our community posts platform.
+                    </p>
+                    
+                    <div className="d-flex justify-content-center gap-3 flex-wrap">
+                      <Link to="/posts" className="btn btn-primary btn-lg">
+                        <MessageSquare className="me-2" size={20} />
+                        View All Posts
+                      </Link>
+                      
+                      {isLoggedIn && (
+                        <Link to="/createpost" className="btn btn-success btn-lg">
+                          ✨ Create Post
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            {postsLoading ? (
-              <div className="text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading posts...</span>
-                </div>
-                <p className="mt-2">Loading posts...</p>
+            <div className="row text-center mt-4">
+              <div className="col-md-4 mb-3">
+                <div className="h4 text-primary mb-2">100+</div>
+                <p className="text-muted">Active Discussions</p>
               </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center">
-                <p className="text-muted">No posts yet. Be the first to share something!</p>
-                {isLoggedIn && (
-                  <Link to="/createpost" className="btn btn-primary mt-3">
-                    Create Your First Post
-                  </Link>
-                )}
+              <div className="col-md-4 mb-3">
+                <div className="h4 text-success mb-2">500+</div>
+                <p className="text-muted">Community Members</p>
               </div>
-            ) : (
-              <div className="row">
-                {posts.map(post => (
-                  <div key={post.id} className="col-lg-6 col-xl-4 mb-4">
-                    <PostCard 
-                      post={post} 
-                      onDelete={token && post.user_id ? () => handleDelete(post.id) : null} 
-                    />
-                  </div>
-                ))}
+              <div className="col-md-4 mb-3">
+                <div className="h4 text-warning mb-2">24/7</div>
+                <p className="text-muted">Active Community</p>
               </div>
-            )}
+            </div>
           </div>
         </section>
 
@@ -280,9 +236,14 @@ const Home = () => {
             <p className="lead mt-3">Join thousands of learners and teachers building skill communities.</p>
 
             {isLoggedIn ? (
-              <Link to="/skills" className="btn btn-light btn-lg mt-4 px-5 py-2 fw-semibold">
-                🔍 Explore Opportunities
-              </Link>
+              <div className="d-flex justify-content-center gap-3 flex-wrap">
+                <Link to="/skills" className="btn btn-light btn-lg px-5 py-2 fw-semibold">
+                  🔍 Explore Opportunities
+                </Link>
+                <Link to="/posts" className="btn btn-outline-light btn-lg px-5 py-2 fw-semibold">
+                  📝 View Community Posts
+                </Link>
+              </div>
             ) : (
               <Link to="/signup" className="btn btn-light btn-lg mt-4 px-5 py-2 fw-semibold">
                 🌟 Start Your Journey

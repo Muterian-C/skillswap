@@ -17,6 +17,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import Conversations from "./components/Conversations";
 import EditSkill from './components/EditSkill';
 import CreatePost from './components/CreatePost';
+import PostsFeed from "./components/PostFeed";
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/signin" element={<Signin />} />
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/messages/:receiverId" element={<Messages />} />
+              <Route path="/posts" element={<PostsFeed />}/>
               <Route
                 path="/createpost"
                 element={
