@@ -11,7 +11,7 @@ const PostsFeed = () => {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/posts', {
+      const res = await axios.get('https://muterianc.pythonanywhere.com/api/posts', {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       setPosts(res.data.posts);
@@ -25,7 +25,7 @@ const PostsFeed = () => {
   const handleDelete = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
     try {
-      await axios.delete(`/api/posts/${postId}`, {
+      await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setPosts(posts.filter(p => p.id !== postId));
@@ -39,16 +39,39 @@ const PostsFeed = () => {
     fetchPosts();
   }, []);
 
-  if (loading) return <p>Loading posts...</p>;
+  if (loading) return (
+    <div className="text-center py-5">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading posts...</span>
+      </div>
+      <p className="mt-2">Loading posts...</p>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="container py-5">
+      <div className="row">
+        <div className="col-12 text-center mb-5">
+          <h1 className="display-4 fw-bold">Community Posts</h1>
+          <p className="lead text-muted">See what everyone is sharing</p>
+        </div>
+      </div>
+      
       {posts.length === 0 ? (
-        <p>No posts yet.</p>
+        <div className="text-center py-5">
+          <p className="text-muted fs-5">No posts yet. Be the first to share something!</p>
+        </div>
       ) : (
-        posts.map(post => (
-          <PostCard key={post.id} post={post} onDelete={token && post.user_id ? handleDelete : null} />
-        ))
+        <div className="row">
+          {posts.map(post => (
+            <div key={post.id} className="col-lg-8 col-xl-6 mx-auto mb-4">
+              <PostCard 
+                post={post} 
+                onDelete={token && post.user_id ? () => handleDelete(post.id) : null} 
+              />
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
