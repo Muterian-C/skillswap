@@ -81,14 +81,13 @@ const Navbar = () => {
   };
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-      scrolled 
-        ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50' 
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled
+        ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50'
         : 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100'
-    }`}>
+      }`}>
       {/* Animated gradient line at top */}
       <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 to-blue-500 animate-pulse bg-[length:200%_100%]"></div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Left side - Brand and main links */}
@@ -121,7 +120,7 @@ const Navbar = () => {
                   <span className="relative z-10">Home</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
-                
+
                 <Link
                   to="/skills"
                   className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-purple-600 transition-all duration-300 overflow-hidden"
@@ -131,7 +130,7 @@ const Navbar = () => {
                   <span className="relative z-10">Browse</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
-                
+
                 <Link
                   to="/addskills"
                   className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-pink-600 transition-all duration-300 overflow-hidden"
@@ -141,7 +140,7 @@ const Navbar = () => {
                   <span className="relative z-10">Add Skill</span>
                   <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink-500 group-hover:w-full transition-all duration-300"></div>
                 </Link>
-                
+
                 <Link
                   to="/conversations"
                   className="group relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-gray-600 hover:text-emerald-600 transition-all duration-300 overflow-hidden"
@@ -231,11 +230,16 @@ const Navbar = () => {
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                       <User className="h-4 w-4 text-white" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
-                      Hi, {user?.username || 'User'}
-                    </span>
+                    <Link
+                      to="/profile"
+                    >
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
+                        Hi, {user?.username || 'User'}
+                      </span>
+                    </Link>
+
                   </div>
-                  
+
                   <button
                     onClick={handleLogout}
                     className="group flex items-center text-sm font-medium text-gray-600 hover:text-red-600 bg-gradient-to-r from-gray-100/80 to-red-50/80 hover:from-red-50 hover:to-red-100 px-4 py-2 rounded-2xl transition-all duration-300 border border-gray-200/50 hover:border-red-200 hover:shadow-lg transform hover:scale-105"
@@ -281,11 +285,10 @@ const Navbar = () => {
 
       {/* Enhanced Mobile menu */}
       {user && (
-        <div className={`md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 transition-all duration-500 ease-out ${
-          isMobileMenuOpen
+        <div className={`md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 transition-all duration-500 ease-out ${isMobileMenuOpen
             ? 'max-h-[500px] opacity-100 shadow-2xl'
             : 'max-h-0 opacity-0 overflow-hidden'
-        }`}>
+          }`}>
           <div className="px-4 pt-3 pb-4 space-y-2">
             {[
               { to: '/', icon: Home, label: 'Home', color: 'blue' },
