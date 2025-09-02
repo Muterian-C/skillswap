@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import PostCard from './PostCard'; // Assuming PostCard is in the same directory
+import PostCard from './PostCard';
 
 const PostPage = () => {
   const { id } = useParams();
@@ -20,16 +20,46 @@ const PostPage = () => {
   const fetchPostAndReplies = async () => {
     try {
       setLoading(true);
-      // Fetch the main post
+      
+      // Fetch the main post with additional data
       const postRes = await axios.get(`https://muterianc.pythonanywhere.com/api/posts/${id}`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       
-      setPost(postRes.data.post);
+      // Fetch replies separately
+      const repliesRes = await axios.get(`https://muterianc.pythonanywhere.com/api/posts/${id}/replies`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       
-      // Fetch replies (you might need to implement this endpoint)
-      // For now, let's assume your backend returns replies with the post
-      // If not, you'll need to create a separate endpoint for fetching replies
+      // Check if current user liked this post
+      let isLikedByCurrentUser = false;
+      if (token) {
+        try {
+          // We need to check if the user liked this specific post
+          // Since the single post endpoint doesn't return this info,
+          // we might need to make an additional request or modify the backend
+          // For now, let's assume we'll get this info from a separate call
+          const likesRes = await axios.get(`https://muterianc.pythonanywhere.com/api/posts`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          // Find if this post is in the list and if it's liked
+          const allPosts = likesRes.data.posts || [];
+          const currentPost = allPosts.find(p => p.id === parseInt(id));
+          isLikedByCurrentUser = currentPost ? currentPost.liked_by_current_user : false;
+        } catch (err) {
+          console.error('Error checking like status:', err);
+        }
+      }
+      
+      // Enhance the post data with like information
+      const enhancedPost = {
+        ...postRes.data.post,
+        is_liked: isLikedByCurrentUser
+      };
+      
+      setPost(enhancedPost);
+      setReplies(repliesRes.data.replies || []);
       
     } catch (err) {
       console.error('Error fetching post:', err);
@@ -38,20 +68,18 @@ const PostPage = () => {
     }
   };
 
-  // Add this function to your PostPage component
-const handleDelete = async (postId) => {
-  if (!window.confirm('Are you sure you want to delete this post?')) return;
-  try {
-    await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    // Navigate back to feed after successful deletion
-    navigate('/');
-  } catch (err) {
-    console.error('Error deleting post:', err);
-    alert(err.response?.data?.error || 'Error deleting post');
-  }
-};
+  const handleDelete = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      navigate('/');
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      alert(err.response?.data?.error || 'Error deleting post');
+    }
+  };
 
   const handleReply = async () => {
     if (!replyContent.trim()) return;
@@ -67,7 +95,6 @@ const handleDelete = async (postId) => {
         }
       });
       
-      // Refresh the post to see the new reply
       fetchPostAndReplies();
       setReplyContent('');
     } catch (err) {
@@ -78,7 +105,7 @@ const handleDelete = async (postId) => {
 
   const handleLike = async (postId, isLiked) => {
     try {
-      if (isLiked) {
+      if (!isLiked) {
         await axios.post(`https://muterianc.pythonanywhere.com/api/posts/${postId}/like`, {}, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -87,7 +114,6 @@ const handleDelete = async (postId) => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
-      // Refresh the post to see updated like count
       fetchPostAndReplies();
     } catch (err) {
       console.error('Error liking post:', err);
@@ -135,12 +161,9 @@ const handleDelete = async (postId) => {
       {/* Main post */}
       <PostCard 
         post={post} 
-        onDelete={token && post.user_id === currentUser?.id ? () => {
-          // Handle delete and navigate back
-          handleDelete(post.id);
-        } : null}
-        onLike={handleLike}
-        onReply={null} // Disable reply button since we have a dedicated reply section
+        onDelete={token && post.user_id === currentUser?.id ? () => handleDelete(post.id) : null}
+        onLike={(postId) => handleLike(postId, post.is_liked)}
+        onReply={null}
         currentUser={currentUser}
       />
 
