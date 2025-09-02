@@ -13,7 +13,7 @@ const Footer = () => {
   const socialLinks = [
     { 
       name: 'Twitter', 
-      url: 'https://x.com', 
+      url: 'https://x.com/skill_sw_ap?t=NoplyPGklvHUoG_snvcONA&s=09', 
       icon: '𝕏', 
       color: 'hover:bg-black hover:border-black' 
     },
@@ -25,7 +25,7 @@ const Footer = () => {
     },
     { 
       name: 'Instagram', 
-      url: 'https://instagram.com', 
+      url: 'https://www.instagram.com/skill_sw_ap?igsh=YzljYTk1ODg3Zg==', 
       icon: '📷', 
       color: 'hover:bg-gradient-to-br hover:from-purple-600 hover:to-pink-600 hover:border-transparent' 
     },
