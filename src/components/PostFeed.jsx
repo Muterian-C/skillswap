@@ -2,6 +2,18 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { 
+  FiHeart, 
+  FiMessageCircle, 
+  FiShare, 
+  FiMoreHorizontal, 
+  FiTrash2,
+  FiPlusCircle,
+  FiSend,
+  FiX,
+  FiImage,
+  FiClock
+} from 'react-icons/fi';
 
 const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -10,7 +22,6 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   const [expanded, setExpanded] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [replyContent, setReplyContent] = useState('');
-  const [isClicked, setIsClicked] = useState(false);
   const optionsRef = useRef(null);
   const navigate = useNavigate();
 
@@ -48,11 +59,7 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   };
 
   const handlePostClick = () => {
-    // Add a brief visual feedback before navigating
-    setIsClicked(true);
-    setTimeout(() => {
-      navigate(`/post/${post.id}`);
-    }, 150);
+    navigate(`/post/${post.id}`);
   };
 
   const handleShare = (e) => {
@@ -65,7 +72,6 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
       })
       .catch((error) => console.log('Error sharing', error));
     } else {
-      // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`)
         .then(() => alert('Link copied to clipboard!'))
         .catch(err => console.error('Could not copy text: ', err));
@@ -97,52 +103,50 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
 
   return (
     <div 
-      className={`post-card bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100 hover:shadow-md transition-all duration-300 cursor-pointer ${isClicked ? 'scale-95 opacity-90' : ''}`}
+      className="post-card bg-white rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
       onClick={handlePostClick}
-      onMouseDown={() => setIsClicked(true)}
-      onMouseUp={() => setIsClicked(false)}
-      onMouseLeave={() => setIsClicked(false)}
     >
       <div className="flex">
         <div className="flex-shrink-0 mr-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
             {post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
         
         <div className="flex-grow">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-gray-900">{post.author_name}</h3>
-              <span className="text-gray-500 text-sm">@{post.author_name.toLowerCase().replace(/\s+/g, '')}</span>
-              <span className="text-gray-300">·</span>
-              <span className="text-gray-500 text-sm">{formatDate(post.created_at)}</span>
+            <div className="flex items-center space-x-3">
+              <h3 className="font-bold text-gray-900 text-lg">{post.author_name}</h3>
+              <span className="text-gray-500 text-sm">•</span>
+              <span className="text-gray-500 text-sm flex items-center">
+                <FiClock className="mr-1" />
+                {formatDate(post.created_at)}
+              </span>
             </div>
             
             {onDelete && (
               <div className="relative" ref={optionsRef}>
                 <button 
-                  className="text-gray-400 hover:text-blue-500 rounded-lg p-2 hover:bg-blue-50 transition-colors"
+                  className="text-gray-400 hover:text-indigo-600 rounded-full p-2 hover:bg-indigo-50 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowOptions(!showOptions);
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-                  </svg>
+                  <FiMoreHorizontal className="h-5 w-5" />
                 </button>
                 
                 {showOptions && (
-                  <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-10 border border-gray-200">
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowOptions(false);
                         onDelete(post.id);
                       }}
                     >
+                      <FiTrash2 className="mr-2 h-4 w-4" />
                       Delete Post
                     </button>
                   </div>
@@ -151,23 +155,24 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
             )}
           </div>
           
-          <div className="mt-2 mb-3" onClick={(e) => e.stopPropagation()}>
-            <p className={`text-gray-800 ${!expanded && post.content.length > 150 ? 'line-clamp-3' : ''}`}>
+          <div className="mt-3 mb-4" onClick={(e) => e.stopPropagation()}>
+            <p className={`text-gray-800 text-base leading-relaxed ${!expanded && post.content.length > 150 ? 'line-clamp-3' : ''}`}>
               {post.content}
             </p>
             {post.content.length > 150 && (
               <button 
-                className="text-blue-500 text-sm font-medium mt-1 hover:underline"
+                className="text-indigo-600 text-sm font-medium mt-2 hover:underline flex items-center"
                 onClick={toggleExpand}
               >
                 {expanded ? 'Show less' : 'Read more'}
+                <span className="ml-1">{expanded ? '↑' : '↓'}</span>
               </button>
             )}
           </div>
           
           {post.image_url && (
             <div 
-              className="mb-3 rounded-xl overflow-hidden border border-gray-200 shadow-sm"
+              className="mb-4 rounded-2xl overflow-hidden border border-gray-200 shadow-md"
               onClick={(e) => e.stopPropagation()}
             >
               <img
@@ -178,87 +183,63 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
             </div>
           )}
           
-          <div className="flex justify-between max-w-md mt-4 pt-3 border-t border-gray-100">
+          <div className="flex justify-between mt-4 pt-4 border-t border-gray-100">
             <button 
-              className="flex items-center text-gray-500 hover:text-blue-500 group transition-colors"
-              onClick={handleReplyClick}
-            >
-              <div className="p-2 rounded-xl group-hover:bg-blue-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <span className="ml-1 text-sm">{formatCount(post.replies_count || 0)}</span>
-            </button>
-            
-            <button 
-              className="flex items-center text-gray-500 hover:text-green-500 group transition-colors"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-2 rounded-xl group-hover:bg-green-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-              </div>
-              <span className="ml-1 text-sm">{formatCount(post.reposts_count || 0)}</span>
-            </button>
-            
-            <button 
-              className={`flex items-center group transition-colors ${isLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'}`}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
+                isLiked 
+                  ? 'text-rose-600 bg-rose-50' 
+                  : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50'
+              }`}
               onClick={handleLike}
             >
-              <div className="p-2 rounded-xl group-hover:bg-rose-50 transition-colors">
-                {isLiked ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                )}
-              </div>
-              <span className="ml-1 text-sm">{formatCount(likeCount)}</span>
+              <FiHeart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="text-sm font-medium">{formatCount(likeCount)}</span>
             </button>
             
             <button 
-              className="flex items-center text-gray-500 hover:text-blue-500 group transition-colors"
-              onClick={handleShare}
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+              onClick={handleReplyClick}
             >
-              <div className="p-2 rounded-xl group-hover:bg-blue-50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-              </div>
+              <FiMessageCircle className="h-5 w-5" />
+              <span className="text-sm font-medium">{formatCount(post.replies_count || 0)}</span>
+            </button>
+            
+            <button 
+              className="flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FiShare className="h-5 w-5" />
+              <span className="text-sm font-medium">Share</span>
             </button>
           </div>
 
           {isReplying && (
-            <div className="mt-4 pt-3 border-t border-gray-100">
+            <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex">
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
                     {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                 </div>
                 <div className="flex-grow">
                   <textarea
-                    className="w-full p-3 border border-gray-200 rounded-lg bg-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="Post your reply..."
+                    className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    placeholder="Share your thoughts..."
                     rows="2"
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     autoFocus
                   />
-                  <div className="flex justify-end mt-2 space-x-3">
+                  <div className="flex justify-end mt-3 space-x-3">
                     <button
-                      className="px-3 py-1 text-sm bg-gray-100 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+                      className="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors flex items-center"
                       onClick={() => setIsReplying(false)}
                     >
+                      <FiX className="mr-2 h-4 w-4" />
                       Cancel
                     </button>
                     <button
-                      className="px-3 py-1 text-sm bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-medium disabled:opacity-50 hover:from-purple-600 hover:to-blue-600 transition-all"
+                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium disabled:opacity-50 hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center"
                       onClick={() => {
                         onReply(post, replyContent);
                         setIsReplying(false);
@@ -266,7 +247,8 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
                       }}
                       disabled={!replyContent.trim()}
                     >
-                      Reply
+                      <FiSend className="mr-2 h-4 w-4" />
+                      Respond
                     </button>
                   </div>
                 </div>
@@ -286,8 +268,7 @@ const PostsFeed = () => {
   const [composingPost, setComposingPost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
-  const [replyingTo, setReplyingTo] = useState(null);
-  const [replyContent, setReplyContent] = useState('');
+  const navigate = useNavigate();
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -327,7 +308,6 @@ const PostsFeed = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
-
     } catch (err) {
       console.error(err);
     }
@@ -340,11 +320,6 @@ const PostsFeed = () => {
       const formData = new FormData();
       formData.append('content', newPostContent);
       
-      // If you want to add image upload functionality later:
-      // if (selectedImage) {
-      //   formData.append('image', selectedImage);
-      // }
-      
       await axios.post('https://muterianc.pythonanywhere.com/api/createPosts', formData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -352,7 +327,6 @@ const PostsFeed = () => {
         }
       });
       
-      // Refetch posts to get the updated list
       fetchPosts();
       setNewPostContent('');
       setSelectedImage(null);
@@ -377,84 +351,85 @@ const PostsFeed = () => {
         }
       });
       
-      // Refetch posts to get updated counts
       fetchPosts();
-      setReplyContent('');
-      setReplyingTo(null);
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.error || 'Error posting reply');
     }
   };
 
-  
   useEffect(() => {
     fetchPosts();
   }, []);
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto bg-gray-50 min-h-screen py-6">
-      <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Community Feed</h1>
-        <p className="text-gray-600">See what everyone is sharing</p>
+    <div className="max-w-2xl mx-auto bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen py-8 px-4">
+      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-200">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          Community Stream
+        </h1>
+        <p className="text-gray-600 text-lg">Discover and share with your community</p>
       </div>
       
       {token && (
-        <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
           {composingPost ? (
             <div className="mb-4">
               <textarea
-                className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Share something with the community..."
+                className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                placeholder="What's on your mind?"
                 rows="4"
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
                 autoFocus
               />
               
-              {/* Image upload placeholder - implement if needed */}
-              {/* <div className="mt-3">
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e) => setSelectedImage(e.target.files[0])}
-                />
-              </div> */}
-              
-              <div className="flex justify-end mt-3 space-x-3">
-                <button
-                  className="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
-                  onClick={() => setComposingPost(false)}
-                >
-                  Cancel
+              <div className="flex items-center justify-between mt-4">
+                <button className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors">
+                  <FiImage className="h-5 w-5 mr-2" />
+                  Add Image
                 </button>
-                <button
-                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl text-white font-medium disabled:opacity-50 hover:from-purple-600 hover:to-blue-600 transition-all"
-                  onClick={handleCreatePost}
-                  disabled={!newPostContent.trim()}
-                >
-                  Share
-                </button>
+                
+                <div className="flex space-x-3">
+                  <button
+                    className="px-5 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors flex items-center"
+                    onClick={() => setComposingPost(false)}
+                  >
+                    <FiX className="mr-2 h-4 w-4" />
+                    Cancel
+                  </button>
+                  <button
+                    className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium disabled:opacity-50 hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center"
+                    onClick={handleCreatePost}
+                    disabled={!newPostContent.trim()}
+                  >
+                    <FiSend className="mr-2 h-4 w-4" />
+                    Share
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                   {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                 </div>
               </div>
               <button
-                className="flex-grow text-left text-gray-500 p-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                className="flex-grow text-left text-gray-500 p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-300"
                 onClick={() => setComposingPost(true)}
               >
-                Share something with the community...
+                <div className="flex items-center">
+                  <FiPlusCircle className="h-5 w-5 mr-3 text-indigo-500" />
+                  <span className="text-lg">Share your thoughts...</span>
+                </div>
               </button>
             </div>
           )}
@@ -462,20 +437,18 @@ const PostsFeed = () => {
       )}
       
       {posts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm text-center py-10 px-4">
-          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 flex items-center justify-center mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
+        <div className="bg-white rounded-2xl shadow-lg text-center py-16 px-4 border border-gray-200">
+          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 flex items-center justify-center mb-6">
+            <FiMessageCircle className="h-12 w-12 text-indigo-500" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">No posts yet</h3>
-          <p className="text-gray-600 mb-4">Be the first to share something!</p>
+          <h3 className="text-2xl font-medium text-gray-900 mb-3">No posts yet</h3>
+          <p className="text-gray-600 text-lg mb-6">Be the first to share something inspiring!</p>
           {token && (
             <button
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl text-white font-medium hover:from-purple-600 hover:to-blue-600 transition-all"
+              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium hover:from-indigo-600 hover:to-purple-700 transition-all text-lg"
               onClick={() => setComposingPost(true)}
             >
-              Create post
+              Create your first post
             </button>
           )}
         </div>
