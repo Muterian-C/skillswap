@@ -1,23 +1,115 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Star, Edit, Trash2, LogOut, PlusCircle } from 'lucide-react';
+import { User, Star, Edit, Trash2, LogOut, PlusCircle, Heart, MessageCircle } from 'lucide-react';
 import axios from 'axios';
 import { FiAlertCircle } from 'react-icons/fi';
-import { useAuth } from '../context/AuthContext'; // ⬅️ use AuthContext
+import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
 
+// Simple Post Card for Profile Page
+const ProfilePostCard = ({ post, onDelete, onClick }) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likes_count || 0);
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(post.id);
+    }
+  };
 
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(post.id);
+    }
+  };
+
+  const formatCount = (count) => {
+    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+    return count;
+  };
+
+  return (
+    <div 
+      className="bg-white shadow rounded-lg overflow-hidden cursor-pointer transition-transform hover:scale-105"
+      onClick={handleCardClick}
+    >
+      {post.image_url ? (
+        <img
+          className="h-48 w-full object-cover"
+          src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
+          alt="Post"
+        />
+      ) : (
+        <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
+          <span className="text-gray-400">No image</span>
+        </div>
+      )}
+
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1">
+            <h3 className="text-lg font-medium text-gray-900 line-clamp-2">
+              {post.content ? (
+                post.content.length > 50
+                  ? `${post.content.substring(0, 50)}...`
+                  : post.content
+              ) : 'Your Post'}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {new Date(post.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Like and Comment Counts */}
+        <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
+          <div className="flex items-center">
+            <Heart 
+              className={`h-4 w-4 mr-1 ${isLiked ? 'text-red-500 fill-current' : ''}`} 
+            />
+            <span>{formatCount(likeCount)}</span>
+          </div>
+          <div className="flex items-center">
+            <MessageCircle className="h-4 w-4 mr-1" />
+            <span>{formatCount(post.replies_count || 0)}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-4 flex justify-between pt-3 border-t border-gray-100">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // Navigate to edit page
+            }}
+            className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            Edit
+          </button>
+          <button
+            onClick={handleDeleteClick}
+            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Profile = () => {
-  const { user, token, logout } = useAuth(); // ⬅️ grab user & token from context
+  const { user, token, logout } = useAuth();
   const [userSkills, setUserSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const [userPosts, setUserPosts] = useState([]);
-
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
@@ -26,7 +118,6 @@ const Profile = () => {
       await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
 
       setUserPosts(prev => prev.filter(post => post.id !== postId));
       setSuccess('Post deleted successfully');
@@ -38,8 +129,9 @@ const Profile = () => {
     }
   };
 
-
-
+  const handlePostClick = (postId) => {
+    navigate(`/post/${postId}`);
+  };
 
   useEffect(() => {
     if (!token || !user) {
@@ -50,31 +142,29 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         // Fetch fresh user data from backend
-        const userResponse = await axios.get('https://muterianc.pythonanywhere.com//api/me', {
+        const userResponse = await axios.get('https://muterianc.pythonanywhere.com/api/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         // Fetch user skills
         const skillsResponse = await axios.get(
-          `https://muterianc.pythonanywhere.com//api/user_skills/${userResponse.data.user.id}`,
+          `https://muterianc.pythonanywhere.com/api/user_skills/${userResponse.data.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         setUserSkills(skillsResponse.data.skills || []);
 
-        // ✅ Fetch user posts
+        // Fetch user posts
         const postsResponse = await axios.get(
           `https://muterianc.pythonanywhere.com/api/posts/user/${userResponse.data.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setUserPosts(postsResponse.data || []);
 
-
-
       } catch (err) {
         console.error("Auth error:", err);
         setError('Session expired. Please login again.');
-        logout(); // ⬅️ use AuthContext logout
+        logout();
         navigate('/signin');
       } finally {
         setLoading(false);
@@ -118,7 +208,6 @@ const Profile = () => {
   return (
     <div>
       <Navbar />
-
       <div className="h-16"></div>
 
       <div className="min-h-screen bg-gray-50">
@@ -155,8 +244,6 @@ const Profile = () => {
               </div>
             </div>
           </div>
-
-          {/* Skills Section */}
 
           {/* Skills Section */}
           <div className="mt-8">
@@ -282,7 +369,6 @@ const Profile = () => {
             )}
           </div>
 
-
           {/* User Posts Section */}
           <div className="mt-12">
             <div className="flex justify-between items-center mb-6">
@@ -318,66 +404,16 @@ const Profile = () => {
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {userPosts.map((post) => (
-                  <div key={post.id} className="bg-white shadow rounded-lg overflow-hidden">
-                    {post.image_url ? (
-                      <img
-                        className="h-48 w-full object-cover"
-                        src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
-                        alt="Post"
-                      />
-                    ) : (
-                      <div className="h-48 w-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400">No image</span>
-                      </div>
-                    )}
-
-                    <div className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          {/* ✅ FIXED: Show content preview instead of "Post #5" */}
-                          <h3 className="text-lg font-medium text-gray-900">
-                            {post.content ? (
-                              post.content.length > 30
-                                ? `${post.content.substring(0, 30)}...`
-                                : post.content
-                            ) : 'Your Post'}
-                          </h3>
-                          <p className="mt-1 text-sm text-gray-500">
-                            {new Date(post.created_at).toLocaleDateString()}
-                          </p>
-
-                        </div>
-                      </div>
-
-                      {/* Show full content in the body */}
-                      <p className="mt-4 text-sm text-gray-600">
-                        {post.content || 'No content provided.'}
-                      </p>
-
-                      <div className="mt-6 flex justify-between">
-                        <button
-                          onClick={() => navigate(`/edit-post/${post.id}`)}
-                          className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                  <ProfilePostCard 
+                    key={post.id} 
+                    post={post} 
+                    onDelete={handleDeletePost}
+                    onClick={handlePostClick}
+                  />
                 ))}
               </div>
             )}
           </div>
-          
-          {/* ... keep the rest of your Skills UI the same ... */}
         </div>
       </div>
     </div>
