@@ -38,6 +38,21 @@ const PostPage = () => {
     }
   };
 
+  // Add this function to your PostPage component
+const handleDelete = async (postId) => {
+  if (!window.confirm('Are you sure you want to delete this post?')) return;
+  try {
+    await axios.delete(`https://muterianc.pythonanywhere.com/api/posts/${postId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    // Navigate back to feed after successful deletion
+    navigate('/');
+  } catch (err) {
+    console.error('Error deleting post:', err);
+    alert(err.response?.data?.error || 'Error deleting post');
+  }
+};
+
   const handleReply = async () => {
     if (!replyContent.trim()) return;
     
