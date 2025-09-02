@@ -18,6 +18,7 @@ import Conversations from "./components/Conversations";
 import EditSkill from './components/EditSkill';
 import CreatePost from './components/CreatePost';
 import PostsFeed from "./components/PostFeed";
+import PostPage from "./components/PostPage";
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/messages/:receiverId" element={<Messages />} />
               <Route path="/posts" element={<PostsFeed />}/>
+              <Route path="/post/:id" element={<PostPage />} /> {/* Add this route */}
               <Route
                 path="/createpost"
                 element={

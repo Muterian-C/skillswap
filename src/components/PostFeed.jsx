@@ -1,21 +1,24 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick }) => {
+const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likes_count || 0);
   const [showOptions, setShowOptions] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [isClicked, setIsClicked] = useState(false);
   const optionsRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser && post.liked_by_current_user !== undefined) {
-      setIsLiked(post.liked_by_current_user);
+    if (currentUser) {
+      setIsLiked(post.liked_by_current_user || false);
     }
-    setLikeCount(post.likes_count || 0);
-  }, [post, currentUser]);
+  }, [currentUser, post.liked_by_current_user]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -38,21 +41,35 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
 
   const handleReplyClick = (e) => {
     e.stopPropagation();
-    if (onReply) onReply(post);
-  };
-
-  const handleDeleteClick = (e) => {
-    e.stopPropagation();
-    if (onDelete) onDelete(post.id);
+    if (onReply) {
+      onReply(post);
+      setIsReplying(true);
+    }
   };
 
   const handlePostClick = () => {
-    if (onPostClick) onPostClick(post);
+    // Add a brief visual feedback before navigating
+    setIsClicked(true);
+    setTimeout(() => {
+      navigate(`/post/${post.id}`);
+    }, 150);
   };
 
-  const handleImageClick = (e) => {
+  const handleShare = (e) => {
     e.stopPropagation();
-    // You could add image zoom functionality here
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out this post',
+        text: post.content.substring(0, 100) + '...',
+        url: `${window.location.origin}/post/${post.id}`,
+      })
+      .catch((error) => console.log('Error sharing', error));
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`)
+        .then(() => alert('Link copied to clipboard!'))
+        .catch(err => console.error('Could not copy text: ', err));
+    }
   };
 
   const formatCount = (count) => {
@@ -80,36 +97,26 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
 
   return (
     <div 
-      className={`post-card bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100 transition-all duration-300 cursor-pointer ${
-        isHovered ? 'shadow-md border-gray-200' : ''
-      }`}
+      className={`post-card bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100 hover:shadow-md transition-all duration-300 cursor-pointer ${isClicked ? 'scale-95 opacity-90' : ''}`}
       onClick={handlePostClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseDown={() => setIsClicked(true)}
+      onMouseUp={() => setIsClicked(false)}
+      onMouseLeave={() => setIsClicked(false)}
     >
       <div className="flex">
         <div className="flex-shrink-0 mr-4">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md cursor-pointer hover:opacity-90 transition-opacity">
+          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
             {post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
         
         <div className="flex-grow">
           <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center space-x-2 cursor-pointer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="font-bold text-gray-900 hover:text-blue-600 transition-colors">
-                {post.author_name}
-              </h3>
-              <span className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
-                @{post.author_name.toLowerCase().replace(/\s+/g, '')}
-              </span>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-bold text-gray-900">{post.author_name}</h3>
+              <span className="text-gray-500 text-sm">@{post.author_name.toLowerCase().replace(/\s+/g, '')}</span>
               <span className="text-gray-300">·</span>
-              <span className="text-gray-500 text-sm hover:text-gray-700 transition-colors">
-                {formatDate(post.created_at)}
-              </span>
+              <span className="text-gray-500 text-sm">{formatDate(post.created_at)}</span>
             </div>
             
             {onDelete && (
@@ -129,8 +136,12 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
                 {showOptions && (
                   <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-200">
                     <button
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
-                      onClick={handleDeleteClick}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowOptions(false);
+                        onDelete(post.id);
+                      }}
                     >
                       Delete Post
                     </button>
@@ -140,13 +151,13 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
             )}
           </div>
           
-          <div className="mt-2 mb-3">
+          <div className="mt-2 mb-3" onClick={(e) => e.stopPropagation()}>
             <p className={`text-gray-800 ${!expanded && post.content.length > 150 ? 'line-clamp-3' : ''}`}>
               {post.content}
             </p>
             {post.content.length > 150 && (
               <button 
-                className="text-blue-500 text-sm font-medium mt-1 hover:underline transition-colors"
+                className="text-blue-500 text-sm font-medium mt-1 hover:underline"
                 onClick={toggleExpand}
               >
                 {expanded ? 'Show less' : 'Read more'}
@@ -156,13 +167,13 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
           
           {post.image_url && (
             <div 
-              className="mb-3 rounded-xl overflow-hidden border border-gray-200 shadow-sm cursor-zoom-in"
-              onClick={handleImageClick}
+              className="mb-3 rounded-xl overflow-hidden border border-gray-200 shadow-sm"
+              onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={`https://muterianc.pythonanywhere.com/static/posts/${post.image_url}`}
                 alt="Post"
-                className="w-full h-auto max-h-96 object-cover transition-transform duration-300 hover:scale-105"
+                className="w-full h-auto max-h-96 object-cover"
               />
             </div>
           )}
@@ -212,7 +223,7 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
             
             <button 
               className="flex items-center text-gray-500 hover:text-blue-500 group transition-colors"
-              onClick={(e) => e.stopPropagation()}
+              onClick={handleShare}
             >
               <div className="p-2 rounded-xl group-hover:bg-blue-50 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -221,6 +232,47 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser, onPostClick })
               </div>
             </button>
           </div>
+
+          {isReplying && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <div className="flex">
+                <div className="flex-shrink-0 mr-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                </div>
+                <div className="flex-grow">
+                  <textarea
+                    className="w-full p-3 border border-gray-200 rounded-lg bg-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="Post your reply..."
+                    rows="2"
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="flex justify-end mt-2 space-x-3">
+                    <button
+                      className="px-3 py-1 text-sm bg-gray-100 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors"
+                      onClick={() => setIsReplying(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-3 py-1 text-sm bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-medium disabled:opacity-50 hover:from-purple-600 hover:to-blue-600 transition-all"
+                      onClick={() => {
+                        onReply(post, replyContent);
+                        setIsReplying(false);
+                        setReplyContent('');
+                      }}
+                      disabled={!replyContent.trim()}
+                    >
+                      Reply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -233,9 +285,9 @@ const PostsFeed = () => {
   const [loading, setLoading] = useState(true);
   const [composingPost, setComposingPost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
-  const [selectedPost, setSelectedPost] = useState(null);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -275,8 +327,7 @@ const PostsFeed = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
       }
-      // Refresh posts to get updated like counts
-      fetchPosts();
+
     } catch (err) {
       console.error(err);
     }
@@ -289,15 +340,22 @@ const PostsFeed = () => {
       const formData = new FormData();
       formData.append('content', newPostContent);
       
-      const res = await axios.post('https://muterianc.pythonanywhere.com/api/createPosts', formData, {
+      // If you want to add image upload functionality later:
+      // if (selectedImage) {
+      //   formData.append('image', selectedImage);
+      // }
+      
+      await axios.post('https://muterianc.pythonanywhere.com/api/createPosts', formData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      setPosts([res.data, ...posts]);
+      // Refetch posts to get the updated list
+      fetchPosts();
       setNewPostContent('');
+      setSelectedImage(null);
       setComposingPost(false);
     } catch (err) {
       console.error(err);
@@ -305,12 +363,12 @@ const PostsFeed = () => {
     }
   };
 
-  const handleReply = async (post) => {
-    if (!replyContent.trim()) return;
+  const handleReply = async (post, content) => {
+    if (!content.trim()) return;
     
     try {
       const formData = new FormData();
-      formData.append('content', replyContent);
+      formData.append('content', content);
       
       await axios.post(`https://muterianc.pythonanywhere.com/api/posts/${post.id}/reply`, formData, {
         headers: { 
@@ -319,7 +377,7 @@ const PostsFeed = () => {
         }
       });
       
-      // Refresh posts to get updated reply counts
+      // Refetch posts to get updated counts
       fetchPosts();
       setReplyContent('');
       setReplyingTo(null);
@@ -329,13 +387,7 @@ const PostsFeed = () => {
     }
   };
 
-  const handlePostClick = (post) => {
-    setSelectedPost(post);
-    // You could navigate to a detailed post view or show a modal
-    console.log('Post clicked:', post);
-    // For now, let's just log it. You can implement a detailed view later.
-  };
-
+  
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -365,6 +417,16 @@ const PostsFeed = () => {
                 onChange={(e) => setNewPostContent(e.target.value)}
                 autoFocus
               />
+              
+              {/* Image upload placeholder - implement if needed */}
+              {/* <div className="mt-3">
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={(e) => setSelectedImage(e.target.files[0])}
+                />
+              </div> */}
+              
               <div className="flex justify-end mt-3 space-x-3">
                 <button
                   className="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors"
@@ -385,7 +447,7 @@ const PostsFeed = () => {
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
-                  {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'U'}
+                  {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                 </div>
               </div>
               <button
@@ -420,53 +482,14 @@ const PostsFeed = () => {
       ) : (
         <div>
           {posts.map(post => (
-            <div key={post.id}>
-              <PostCard 
-                post={post} 
-                onDelete={token && post.user_id === currentUser?.id ? handleDelete : null}
-                onLike={handleLike}
-                onReply={setReplyingTo}
-                onPostClick={handlePostClick}
-                currentUser={currentUser}
-              />
-              
-              {replyingTo && replyingTo.id === post.id && (
-                <div className="px-5 py-4 bg-gray-50 rounded-xl mb-5 border border-gray-200">
-                  <div className="flex">
-                    <div className="flex-shrink-0 mr-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md">
-                        {currentUser?.username ? currentUser.username.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                    </div>
-                    <div className="flex-grow">
-                      <textarea
-                        className="w-full p-3 border border-gray-200 rounded-lg bg-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="Post your reply..."
-                        rows="2"
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        autoFocus
-                      />
-                      <div className="flex justify-end mt-2 space-x-3">
-                        <button
-                          className="px-3 py-1 text-sm bg-gray-100 rounded-lg text-gray-700 font-medium hover:bg-gray-200 transition-colors"
-                          onClick={() => setReplyingTo(null)}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          className="px-3 py-1 text-sm bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-white font-medium disabled:opacity-50 hover:from-purple-600 hover:to-blue-600 transition-all"
-                          onClick={() => handleReply(post)}
-                          disabled={!replyContent.trim()}
-                        >
-                          Reply
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <PostCard 
+              key={post.id}
+              post={post} 
+              onDelete={token && post.user_id === currentUser?.id ? handleDelete : null}
+              onLike={handleLike}
+              onReply={handleReply}
+              currentUser={currentUser}
+            />
           ))}
         </div>
       )}
