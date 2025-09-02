@@ -2,11 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FiHeart, 
-  FiMessageCircle, 
-  FiShare, 
-  FiMoreHorizontal, 
+import {
+  FiHeart,
+  FiMessageCircle,
+  FiShare,
+  FiMoreHorizontal,
   FiTrash2,
   FiPlusCircle,
   FiSend,
@@ -44,7 +44,7 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   const handleLike = (e) => {
     e.stopPropagation();
     if (!currentUser) return;
-    
+
     setIsLiked(!isLiked);
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
     if (onLike) onLike(post.id, !isLiked);
@@ -70,7 +70,7 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
         text: post.content.substring(0, 100) + '...',
         url: `${window.location.origin}/post/${post.id}`,
       })
-      .catch((error) => console.log('Error sharing', error));
+        .catch((error) => console.log('Error sharing', error));
     } else {
       navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`)
         .then(() => alert('Link copied to clipboard!'))
@@ -88,11 +88,11 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h`;
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d`;
-    
+
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -102,44 +102,44 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
   };
 
   return (
-    <div 
-      className="post-card bg-white rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
+    <div
+      className="post-card bg-white rounded-lg p-6 mb-4 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer"
       onClick={handlePostClick}
     >
       <div className="flex">
         <div className="flex-shrink-0 mr-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+          <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
             {post.author_name ? post.author_name.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
-        
+
         <div className="flex-grow">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <h3 className="font-bold text-gray-900 text-lg">{post.author_name}</h3>
-              <span className="text-gray-500 text-sm">•</span>
+              <h3 className="font-semibold text-gray-900">{post.author_name}</h3>
+              <span className="text-gray-400 text-sm">•</span>
               <span className="text-gray-500 text-sm flex items-center">
-                <FiClock className="mr-1" />
+                <FiClock className="mr-1 h-3 w-3" />
                 {formatDate(post.created_at)}
               </span>
             </div>
-            
+
             {onDelete && (
               <div className="relative" ref={optionsRef}>
-                <button 
-                  className="text-gray-400 hover:text-indigo-600 rounded-full p-2 hover:bg-indigo-50 transition-colors"
+                <button
+                  className="text-gray-400 hover:text-gray-600 rounded-full p-2 hover:bg-gray-100 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowOptions(!showOptions);
                   }}
                 >
-                  <FiMoreHorizontal className="h-5 w-5" />
+                  <FiMoreHorizontal className="h-4 w-4" />
                 </button>
-                
+
                 {showOptions && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 z-10 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 border border-gray-200">
                     <button
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowOptions(false);
@@ -154,14 +154,14 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
               </div>
             )}
           </div>
-          
+
           <div className="mt-3 mb-4" onClick={(e) => e.stopPropagation()}>
-            <p className={`text-gray-800 text-base leading-relaxed ${!expanded && post.content.length > 150 ? 'line-clamp-3' : ''}`}>
+            <p className={`text-gray-800 leading-relaxed ${!expanded && post.content.length > 150 ? 'line-clamp-3' : ''}`}>
               {post.content}
             </p>
             {post.content.length > 150 && (
-              <button 
-                className="text-indigo-600 text-sm font-medium mt-2 hover:underline flex items-center"
+              <button
+                className="text-blue-600 text-sm font-medium mt-2 hover:underline flex items-center"
                 onClick={toggleExpand}
               >
                 {expanded ? 'Show less' : 'Read more'}
@@ -169,10 +169,10 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
               </button>
             )}
           </div>
-          
+
           {post.image_url && (
-            <div 
-              className="mb-4 rounded-2xl overflow-hidden border border-gray-200 shadow-md"
+            <div
+              className="mb-4 rounded-lg overflow-hidden border border-gray-200"
               onClick={(e) => e.stopPropagation()}
             >
               <img
@@ -182,34 +182,33 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
               />
             </div>
           )}
-          
-          <div className="flex justify-between mt-4 pt-4 border-t border-gray-100">
-            <button 
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 ${
-                isLiked 
-                  ? 'text-rose-600 bg-rose-50' 
-                  : 'text-gray-600 hover:text-rose-600 hover:bg-rose-50'
-              }`}
+
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+            <button
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-200 ${isLiked
+                  ? 'text-red-600 bg-red-50'
+                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                }`}
               onClick={handleLike}
             >
-              <FiHeart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-sm font-medium">{formatCount(likeCount)}</span>
+              <FiHeart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="text-sm">{formatCount(likeCount)}</span>
             </button>
-            
-            <button 
-              className="flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
+
+            <button
+              className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
               onClick={handleReplyClick}
             >
-              <FiMessageCircle className="h-5 w-5" />
-              <span className="text-sm font-medium">{formatCount(post.replies_count || 0)}</span>
+              <FiMessageCircle className="h-4 w-4" />
+              <span className="text-sm">{formatCount(post.replies_count || 0)}</span>
             </button>
-            
-            <button 
-              className="flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-600 hover:text-green-600 hover:bg-green-50 transition-all duration-200"
-              onClick={(e) => e.stopPropagation()}
+
+            <button
+              className="flex items-center space-x-2 px-3 py-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200"
+              onClick={handleShare}
             >
-              <FiShare className="h-5 w-5" />
-              <span className="text-sm font-medium">Share</span>
+              <FiShare className="h-4 w-4" />
+              <span className="text-sm">Share</span>
             </button>
           </div>
 
@@ -217,29 +216,29 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex">
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                     {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                   </div>
                 </div>
                 <div className="flex-grow">
                   <textarea
-                    className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-                    placeholder="Share your thoughts..."
+                    className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="Write a reply..."
                     rows="2"
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     autoFocus
                   />
-                  <div className="flex justify-end mt-3 space-x-3">
+                  <div className="flex justify-end mt-3 space-x-2">
                     <button
-                      className="px-4 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors flex items-center"
+                      className="px-4 py-2 bg-gray-100 rounded-md text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors flex items-center"
                       onClick={() => setIsReplying(false)}
                     >
-                      <FiX className="mr-2 h-4 w-4" />
+                      <FiX className="mr-1 h-4 w-4" />
                       Cancel
                     </button>
                     <button
-                      className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium disabled:opacity-50 hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center"
+                      className="px-4 py-2 bg-blue-600 rounded-md text-white text-sm font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors flex items-center"
                       onClick={() => {
                         onReply(post, replyContent);
                         setIsReplying(false);
@@ -247,8 +246,8 @@ const PostCard = ({ post, onDelete, onLike, onReply, currentUser }) => {
                       }}
                       disabled={!replyContent.trim()}
                     >
-                      <FiSend className="mr-2 h-4 w-4" />
-                      Respond
+                      <FiSend className="mr-1 h-4 w-4" />
+                      Reply
                     </button>
                   </div>
                 </div>
@@ -315,18 +314,23 @@ const PostsFeed = () => {
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
-    
+
     try {
       const formData = new FormData();
       formData.append('content', newPostContent);
-      
+
+      // Add image support
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+
       await axios.post('https://muterianc.pythonanywhere.com/api/createPosts', formData, {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       fetchPosts();
       setNewPostContent('');
       setSelectedImage(null);
@@ -339,18 +343,18 @@ const PostsFeed = () => {
 
   const handleReply = async (post, content) => {
     if (!content.trim()) return;
-    
+
     try {
       const formData = new FormData();
       formData.append('content', content);
-      
+
       await axios.post(`https://muterianc.pythonanywhere.com/api/posts/${post.id}/reply`, formData, {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       fetchPosts();
     } catch (err) {
       console.error(err);
@@ -364,88 +368,88 @@ const PostsFeed = () => {
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen py-8 px-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-200">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          Community Stream
+    <div className="max-w-2xl mx-auto bg-gray-50 min-h-screen py-6 px-4">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 border border-gray-200">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          Community Feed
         </h1>
-        <p className="text-gray-600 text-lg">Discover and share with your community</p>
+        <p className="text-gray-600">Share and discover with your community</p>
       </div>
-      
+
       {token && (
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
           {composingPost ? (
-            <div className="mb-4">
+            <div>
               <textarea
-                className="w-full p-4 border border-gray-200 rounded-xl bg-gray-50 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                className="w-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="What's on your mind?"
                 rows="4"
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
                 autoFocus
               />
-              
+
               <div className="flex items-center justify-between mt-4">
-                <button className="flex items-center text-gray-600 hover:text-indigo-600 transition-colors">
-                  <FiImage className="h-5 w-5 mr-2" />
+                <button className="flex items-center text-gray-600 hover:text-gray-800 transition-colors">
+                  <FiImage className="h-4 w-4 mr-2" />
                   Add Image
                 </button>
-                
-                <div className="flex space-x-3">
+
+                <div className="flex space-x-2">
                   <button
-                    className="px-5 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition-colors flex items-center"
+                    className="px-4 py-2 bg-gray-100 rounded-md text-gray-700 font-medium hover:bg-gray-200 transition-colors flex items-center"
                     onClick={() => setComposingPost(false)}
                   >
-                    <FiX className="mr-2 h-4 w-4" />
+                    <FiX className="mr-1 h-4 w-4" />
                     Cancel
                   </button>
                   <button
-                    className="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium disabled:opacity-50 hover:from-indigo-600 hover:to-purple-700 transition-all flex items-center"
+                    className="px-4 py-2 bg-blue-600 rounded-md text-white font-medium disabled:opacity-50 hover:bg-blue-700 transition-colors flex items-center"
                     onClick={handleCreatePost}
                     disabled={!newPostContent.trim()}
                   >
-                    <FiSend className="mr-2 h-4 w-4" />
-                    Share
+                    <FiSend className="mr-1 h-4 w-4" />
+                    Post
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
-                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center text-white font-semibold">
                   {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
                 </div>
               </div>
               <button
-                className="flex-grow text-left text-gray-500 p-4 rounded-xl border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-300"
+                className="flex-grow text-left text-gray-500 p-3 rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all"
                 onClick={() => setComposingPost(true)}
               >
                 <div className="flex items-center">
-                  <FiPlusCircle className="h-5 w-5 mr-3 text-indigo-500" />
-                  <span className="text-lg">Share your thoughts...</span>
+                  <FiPlusCircle className="h-4 w-4 mr-2" />
+                  <span>What's on your mind?</span>
                 </div>
               </button>
             </div>
           )}
         </div>
       )}
-      
+
       {posts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg text-center py-16 px-4 border border-gray-200">
-          <div className="mx-auto w-24 h-24 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 flex items-center justify-center mb-6">
-            <FiMessageCircle className="h-12 w-12 text-indigo-500" />
+        <div className="bg-white rounded-lg shadow-sm text-center py-12 px-4 border border-gray-200">
+          <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <FiMessageCircle className="h-8 w-8 text-gray-400" />
           </div>
-          <h3 className="text-2xl font-medium text-gray-900 mb-3">No posts yet</h3>
-          <p className="text-gray-600 text-lg mb-6">Be the first to share something inspiring!</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No posts yet</h3>
+          <p className="text-gray-600 mb-4">Be the first to share something with the community!</p>
           {token && (
             <button
-              className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl text-white font-medium hover:from-indigo-600 hover:to-purple-700 transition-all text-lg"
+              className="px-6 py-2 bg-blue-600 rounded-md text-white font-medium hover:bg-blue-700 transition-colors"
               onClick={() => setComposingPost(true)}
             >
               Create your first post
@@ -455,9 +459,9 @@ const PostsFeed = () => {
       ) : (
         <div>
           {posts.map(post => (
-            <PostCard 
+            <PostCard
               key={post.id}
-              post={post} 
+              post={post}
               onDelete={token && post.user_id === currentUser?.id ? handleDelete : null}
               onLike={handleLike}
               onReply={handleReply}
