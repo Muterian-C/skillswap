@@ -19,6 +19,7 @@ import EditSkill from './components/EditSkill';
 import CreatePost from './components/CreatePost';
 import PostsFeed from "./components/PostFeed";
 import PostPage from "./components/PostPage";
+import SingleSkill from './components/SingleSkill';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
               <Route path="/messages/:receiverId" element={<Messages />} />
               <Route path="/posts" element={<PostsFeed />}/>
               <Route path="/post/:id" element={<PostPage />} /> {/* Add this route */}
+              <Route path="/skill/:id" element={<SingleSkill />} />
               <Route
                 path="/createpost"
                 element={

@@ -124,6 +124,11 @@ const Skills = () => {
   const SkillCard = ({ skill, index }) => {
     const isOwnSkill = currentUser && skill.user_id === currentUser.id;
 
+
+     const handleLearnMore = () => {
+    navigate(`/skill/${skill.id}`);
+     };
+
     return (
       <div
         className="col-md-4 mb-4"
@@ -213,7 +218,9 @@ const Skills = () => {
             </div>
 
             <div className="d-flex gap-2 mt-auto">
-              <button className="btn btn-primary flex-grow-1">
+              <button className="btn btn-primary flex-grow-1"
+              onClick={handleLearnMore}
+              >
                 📚 Learn More
               </button>
 
