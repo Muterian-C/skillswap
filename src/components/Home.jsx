@@ -88,7 +88,7 @@ const Home = () => {
                   {/* ✅ NEW: View All Posts Button */}
                   <Link to="/posts" className="btn btn-outline-info btn-lg me-3 px-4 py-2">
                     <MessageSquare className="me-2" size={15} />
-                    View Posts
+                   <spam>View Posts</spam> 
                   </Link>
                 </>
               ) : (
