@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; // Import useAuth hook
+import { Eye, EyeOff } from 'lucide-react';
 
 const Signup = () => {
   // Form state management
@@ -17,6 +18,8 @@ const Signup = () => {
     error: '',
     success: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { signup } = useAuth(); // Get signup function from AuthContext
@@ -246,7 +249,7 @@ const Signup = () => {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 placeholder-gray-400 group-hover:border-gray-300"
                     value={form.password}
                     onChange={handleChange}
@@ -254,11 +257,17 @@ const Signup = () => {
                     required
                     autoComplete="new-password"
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">At least 8 characters</p>
               </div>

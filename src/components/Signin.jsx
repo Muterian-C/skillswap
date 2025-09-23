@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext'; // ⬅️ import context
 
 const Signin = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [status, setStatus] = useState({ loading: false, error: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth(); // ⬅️ get login function from context
 
@@ -106,13 +107,24 @@ const Signin = () => {
                 </div>
                 <input
                   name="password"
-                  type="password"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
                   value={form.password}
                   onChange={handleChange}
                   required
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="text-gray-400 hover:text-gray-600" size={18} />
+                  ) : (
+                    <Eye className="text-gray-400 hover:text-gray-600" size={18} />
+                  )}
+                </button>
               </div>
             </div>
 
