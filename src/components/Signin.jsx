@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // ⬅️ import context
+import { useAuth } from '../context/AuthContext';
 
 const Signin = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [status, setStatus] = useState({ loading: false, error: '' });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth(); // ⬅️ get login function from context
-
-  
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,13 +28,12 @@ const Signin = () => {
     try {
       setStatus({ loading: true, error: '' });
 
-      // Flask expects form-data
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('password', password);
-
-      const res = await axios.post("https://muterianc.pythonanywhere.com/api/login", formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      // CHANGE: Send JSON instead of form-data
+      const res = await axios.post("https://muterianc.pythonanywhere.com/api/login", {
+        email: email,
+        password: password
+      }, {
+        headers: { 'Content-Type': 'application/json' }  // CHANGE: JSON headers
       });
 
       if (res.data.token) {
