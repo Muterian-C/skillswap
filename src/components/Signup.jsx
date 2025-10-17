@@ -73,7 +73,7 @@ const Signup = () => {
     formData.append('phone', phone);
     formData.append('password', password);
 
-    const response = await fetch('https://muterianc.pythonanywhere.com//api/register', {
+    const response = await fetch('https://muterianc.pythonanywhere.com/api/register', {
       method: 'POST',
       body: formData, // FormData automatically sets multipart/form-data headers
     });

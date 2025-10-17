@@ -35,7 +35,7 @@ const Signin = () => {
       formData.append('email', email);
       formData.append('password', password);
 
-      const res = await axios.post("https://muterianc.pythonanywhere.com//api/login", formData, {
+      const res = await axios.post("https://muterianc.pythonanywhere.com/api/login", formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
