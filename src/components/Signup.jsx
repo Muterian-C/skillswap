@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Import useAuth hook
+import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff } from 'lucide-react';
 
 const Signup = () => {
-  // Form state management
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -12,7 +11,6 @@ const Signup = () => {
     password: ''
   });
 
-  // Status state for loading, errors, and success messages
   const [status, setStatus] = useState({
     loading: false,
     error: '',
@@ -20,91 +18,81 @@ const Signup = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-
   const navigate = useNavigate();
-  const { signup } = useAuth(); // Get signup function from AuthContext
+  const { signup } = useAuth();
 
-  // Handle form input changes
   const handleChange = (e) => {
     setForm({ 
       ...form, 
       [e.target.name]: e.target.value 
     });
-    // Clear errors when user starts typing
     if (status.error) setStatus({...status, error: ''});
   };
 
-  // Form submission handler
   const submit = async (e) => {
-  e.preventDefault();
-  setStatus({ loading: true, error: '', success: '' });
-  const { username, email, phone, password } = form;
+    e.preventDefault();
+    setStatus({ loading: true, error: '', success: '' });
+    const { username, email, phone, password } = form;
 
-  // -----------------------------
-  // Client-side validation
-  // -----------------------------
-  if (!username.trim()) {
-    setStatus({ loading: false, error: 'Username is required', success: '' });
-    return;
-  }
-
-  if (!/\S+@\S+\.\S+/.test(email)) {
-    setStatus({ loading: false, error: 'Please enter a valid email', success: '' });
-    return;
-  }
-
-  if (!/^\d{10,15}$/.test(phone)) {
-    setStatus({ loading: false, error: 'Phone must be 10-15 digits', success: '' });
-    return;
-  }
-
-  if (password.length < 8) {
-    setStatus({ loading: false, error: 'Password must be at least 8 characters', success: '' });
-    return;
-  }
-
-  // -----------------------------
-  // Send data to backend
-  // -----------------------------
-  try {
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('email', email);
-    formData.append('phone', phone);
-    formData.append('password', password);
-
-    const response = await fetch('https://muterianc.pythonanywhere.com/api/register', {
-      method: 'POST',
-      body: formData, // FormData automatically sets multipart/form-data headers
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setStatus({ 
-        loading: false, 
-        error: '', 
-        success: 'Registration successful! Redirecting...' 
-      });
-
-      // Redirect to signin page after 1.5 seconds
-      setTimeout(() => navigate('/signin'), 1500);
-    } else {
-      setStatus({ 
-        loading: false, 
-        error: data.error || 'Registration failed', 
-        success: '' 
-      });
+    // Client-side validation
+    if (!username.trim()) {
+      setStatus({ loading: false, error: 'Username is required', success: '' });
+      return;
     }
-  } catch (err) {
-    setStatus({ loading: false, error: 'Network error', success: '' });
-  }
-};
 
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setStatus({ loading: false, error: 'Please enter a valid email', success: '' });
+      return;
+    }
 
-  // ... rest of the component remains unchanged
-  // (Keep all your existing JSX structure)
-  
+    if (!/^\d{10,15}$/.test(phone)) {
+      setStatus({ loading: false, error: 'Phone must be 10-15 digits', success: '' });
+      return;
+    }
+
+    if (password.length < 8) {
+      setStatus({ loading: false, error: 'Password must be at least 8 characters', success: '' });
+      return;
+    }
+
+    // Send data to backend with JSON format
+    try {
+      const response = await fetch('https://muterianc.pythonanywhere.com/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',  // CHANGE: JSON headers
+        },
+        body: JSON.stringify({  // CHANGE: Send as JSON
+          username: username,
+          email: email,
+          phone: phone,
+          password: password
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus({ 
+          loading: false, 
+          error: '', 
+          success: 'Registration successful! Redirecting...' 
+        });
+
+        // Redirect to signin page after 1.5 seconds
+        setTimeout(() => navigate('/signin'), 1500);
+      } else {
+        setStatus({ 
+          loading: false, 
+          error: data.error || 'Registration failed', 
+          success: '' 
+        });
+      }
+    } catch (err) {
+      setStatus({ loading: false, error: 'Network error', success: '' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-4">
       {/* Background decoration elements */}
