@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
 const GoogleCallback = () => {
@@ -11,23 +10,39 @@ const GoogleCallback = () => {
   useEffect(() => {
     const handleGoogleCallback = async () => {
       try {
-        // Extract the authorization code from URL
         const urlParams = new URLSearchParams(location.search);
-        const code = urlParams.get('code');
-
-        if (code) {
-          // Send the code to your backend to exchange for tokens
-          const response = await axios.get(`https://muterianc.pythonanywhere.com/auth/google/callback?code=${code}`);
+        const error = urlParams.get('error');
+        
+        if (error) {
+          // Handle error from backend
+          const errorMessages = {
+            'access_denied': 'You denied access to Google Sign-In',
+            'no_code': 'No authorization code received',
+            'no_id_token': 'Failed to get ID token from Google',
+            'invalid_token': 'Invalid Google token',
+            'auth_failed': 'Authentication failed. Please try again.'
+          };
           
-          if (response.data.success && response.data.token) {
-            // Login the user with the received token
-            login(response.data.user, response.data.token);
-            navigate('/'); // Redirect to home page
-          } else {
-            throw new Error('Google authentication failed');
-          }
+          navigate('/signin', { 
+            state: { error: errorMessages[error] || 'Google authentication failed' } 
+          });
+          return;
+        }
+
+        const token = urlParams.get('token');
+        const userParam = urlParams.get('user');
+
+        if (token && userParam) {
+          // Decode user data
+          const userData = JSON.parse(decodeURIComponent(userParam));
+          
+          // Login the user
+          login(userData, token);
+          
+          // Redirect to home page
+          navigate('/', { replace: true });
         } else {
-          throw new Error('No authorization code received');
+          throw new Error('Missing authentication data');
         }
       } catch (error) {
         console.error('Google OAuth callback error:', error);
@@ -46,7 +61,7 @@ const GoogleCallback = () => {
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Completing Sign In</h2>

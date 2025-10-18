@@ -42,7 +42,7 @@ function App() {
               <Route path="/post/:id" element={<PostPage />} /> {/* Add this route */}
               <Route path="/skill/:id" element={<SingleSkill />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/google/callback" element={<GoogleCallback />} />
+              <Route path="/auth/google/success" element={<GoogleCallback />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/createpost"
