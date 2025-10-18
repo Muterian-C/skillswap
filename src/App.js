@@ -20,6 +20,8 @@ import CreatePost from './components/CreatePost';
 import PostsFeed from "./components/PostFeed";
 import PostPage from "./components/PostPage";
 import SingleSkill from './components/SingleSkill';
+import ResetPassword from "./components/ResetPassword";
+import ForgotPassword from "./components/ForgotPassword";
 
 
 function App() {
@@ -35,9 +37,11 @@ function App() {
               <Route path="/signin" element={<Signin />} />
               <Route path="/conversations" element={<Conversations />} />
               <Route path="/messages/:receiverId" element={<Messages />} />
-              <Route path="/posts" element={<PostsFeed />}/>
+              <Route path="/posts" element={<PostsFeed />} />
               <Route path="/post/:id" element={<PostPage />} /> {/* Add this route */}
               <Route path="/skill/:id" element={<SingleSkill />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/createpost"
                 element={
