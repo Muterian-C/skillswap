@@ -22,6 +22,7 @@ import PostPage from "./components/PostPage";
 import SingleSkill from './components/SingleSkill';
 import ResetPassword from "./components/ResetPassword";
 import ForgotPassword from "./components/ForgotPassword";
+import GoogleCallback from "./components/GoogleCallback";
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
               <Route path="/post/:id" element={<PostPage />} /> {/* Add this route */}
               <Route path="/skill/:id" element={<SingleSkill />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/google/callback" element={<GoogleCallback />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/createpost"
