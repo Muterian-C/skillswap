@@ -19,8 +19,20 @@ const Conversations = () => {
     if (!user) return;
 
     try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
       const res = await axios.get(
-        `https://muterianc.pythonanywhere.com/api/conversations/${user.id}`
+        'https://muterianc.pythonanywhere.com/api/conversations', // ← Fixed URL (no user.id)
+        {
+          headers: {
+            'Authorization': `Bearer ${token}` // ← Added auth token
+          }
+        }
       );
 
       if (res.data.success) {
@@ -28,6 +40,7 @@ const Conversations = () => {
       }
     } catch (err) {
       console.error("Error fetching conversations:", err);
+      console.error("Error response:", err.response?.data); // ← Debug info
     } finally {
       setLoading(false);
     }
@@ -114,10 +127,10 @@ const Conversations = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="h-16"></div>
-      
+
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Your Conversations</h1>
-        
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
           <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
             <div className="flex items-center justify-between">
