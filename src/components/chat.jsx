@@ -39,9 +39,15 @@ const Messages = () => {
   // Fetch conversation
   const fetchMessages = async () => {
     try {
+      const token = localStorage.getItem('token');
+
       const res = await axios.get(
         `https://muterianc.pythonanywhere.com/api/get_messages/${receiverId}`,
-        { params: { user_id: user.id } }
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
       setMessages(res.data.messages);
       setIsLoading(false);
@@ -55,7 +61,7 @@ const Messages = () => {
   useEffect(() => {
     fetchReceiverUsername();
     fetchMessages();
-    
+
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
   }, [receiverId]);
@@ -65,18 +71,30 @@ const Messages = () => {
     if (!newMessage.trim() || isSending) return;
 
     setIsSending(true);
-    
+
     try {
-      await axios.post("https://muterianc.pythonanywhere.com/api/send_message", {
-        sender_id: user.id,
-        receiver_id: receiverId,
-        message: newMessage,
-      });
+      // Get the token from localStorage (or wherever you store it in AuthContext)
+      const token = localStorage.getItem('token');
+
+      await axios.post(
+        "https://muterianc.pythonanywhere.com/api/send_message",
+        {
+          receiver_id: receiverId,
+          message: newMessage,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
       setNewMessage("");
       fetchMessages(); // refresh messages
       inputRef.current?.focus();
     } catch (err) {
       console.error("Error sending message:", err);
+      // Add error handling UI feedback here if needed
+      alert("Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -86,7 +104,7 @@ const Messages = () => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffInHours = (now - date) / (1000 * 60 * 60);
-    
+
     if (diffInHours < 24) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
@@ -111,21 +129,21 @@ const Messages = () => {
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors md:hidden">
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            
+
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm">
                   {receiverUsername.charAt(0).toUpperCase()}
                 </span>
               </div>
-              
+
               <div>
                 <h1 className="font-semibold text-gray-900">{receiverUsername}</h1>
                 <p className="text-sm text-green-500">Online</p>
               </div>
             </div>
           </div>
-          
+
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <MoreVertical className="w-5 h-5 text-gray-600" />
           </button>
@@ -149,13 +167,12 @@ const Messages = () => {
                 {messages.map((msg, index) => {
                   const isCurrentUser = msg.sender_id === user.id;
                   const showAvatar = index === 0 || messages[index - 1].sender_id !== msg.sender_id;
-                  
+
                   return (
                     <div
                       key={msg.id}
-                      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} ${
-                        showAvatar ? "mt-4" : "mt-1"
-                      }`}
+                      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"} ${showAvatar ? "mt-4" : "mt-1"
+                        }`}
                     >
                       <div className={`flex max-w-xs lg:max-w-md ${isCurrentUser ? "flex-row-reverse" : "flex-row"} items-end space-x-2`}>
                         {!isCurrentUser && (
@@ -167,18 +184,17 @@ const Messages = () => {
                             </div>
                           </div>
                         )}
-                        
+
                         <div className={`${isCurrentUser ? "mr-2" : "ml-2"}`}>
                           <div
-                            className={`px-4 py-2 rounded-2xl shadow-sm ${
-                              isCurrentUser
+                            className={`px-4 py-2 rounded-2xl shadow-sm ${isCurrentUser
                                 ? "bg-blue-500 text-white rounded-br-md"
                                 : "bg-white text-gray-900 border border-gray-200 rounded-bl-md"
-                            }`}
+                              }`}
                           >
                             <p className="text-sm leading-relaxed">{msg.message}</p>
                           </div>
-                          
+
                           <div className={`mt-1 ${isCurrentUser ? "text-right" : "text-left"}`}>
                             <span className="text-xs text-gray-500">
                               {formatTime(msg.created_at)}
@@ -214,15 +230,14 @@ const Messages = () => {
                   disabled={isSending}
                 />
               </div>
-              
+
               <button
                 onClick={handleSend}
                 disabled={!newMessage.trim() || isSending}
-                className={`p-3 rounded-full transition-all duration-200 ${
-                  newMessage.trim() && !isSending
+                className={`p-3 rounded-full transition-all duration-200 ${newMessage.trim() && !isSending
                     ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {isSending ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
