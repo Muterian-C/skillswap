@@ -11,20 +11,19 @@ const SingleSkill = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user, token } = useAuth();
-  const currentUser = user;
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!token;
 
   useEffect(() => {
     const fetchSkill = async () => {
       try {
         setLoading(true);
         setError(null);
-        // CORRECTED URL: /api/skill/${id} (singular) instead of /api/skills/${id} (plural)
         const response = await axios.get(`https://muterianc.pythonanywhere.com/api/skill/${id}`);
-        setSkill(response.data.skill || response.data);
+        // ✅ FIXED: Always use .skill for consistency
+        setSkill(response.data.skill);
       } catch (error) {
         console.error("Error fetching skill:", error);
-        setError(error.response?.data?.message || "Failed to fetch skill details. Please try again.");
+        setError(error.response?.data?.error || "Failed to fetch skill details. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -103,7 +102,8 @@ const SingleSkill = () => {
     );
   }
 
-  const isOwnSkill = currentUser && skill.user_id === currentUser.id;
+  // ✅ FIXED: Better user ID comparison
+  const isOwnSkill = user?.id === skill.user_id;
 
   return (
     <div>
@@ -120,15 +120,26 @@ const SingleSkill = () => {
 
         <div className="row">
           <div className="col-md-6 mb-4">
-            <img
-              src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
-              className="img-fluid rounded shadow"
-              alt={skill.skill_name}
-              onError={(e) => {
-                e.target.src = "/images/placeholder.png";
-                e.target.onerror = null;
-              }}
-            />
+            {skill.skill_photo ? (
+              <img
+                src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
+                className="img-fluid rounded shadow"
+                alt={skill.skill_name}
+                onError={(e) => {
+                  e.target.src = "/images/placeholder.png";
+                  e.target.onerror = null;
+                }}
+                style={{ maxHeight: '500px', objectFit: 'cover', width: '100%' }}
+              />
+            ) : (
+              // ✅ ADDED: Proper fallback for missing images
+              <div 
+                className="img-fluid rounded shadow bg-light d-flex align-items-center justify-content-center"
+                style={{ height: '300px', width: '100%' }}
+              >
+                <span className="text-muted">No image available</span>
+              </div>
+            )}
           </div>
           
           <div className="col-md-6">
@@ -142,9 +153,10 @@ const SingleSkill = () => {
                   </span>
                 )}
                 {skill.difficulty && (
-                  <span className={`badge ${skill.difficulty === 'beginner' ? 'bg-success' :
+                  <span className={`badge ${
+                    skill.difficulty === 'beginner' ? 'bg-success' :
                     skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
-                    }`}>
+                  }`}>
                     {skill.difficulty}
                   </span>
                 )}
@@ -153,8 +165,10 @@ const SingleSkill = () => {
 
             <div className="mb-4">
               <div className="d-flex align-items-center mb-3">
-                <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                  style={{ width: '40px', height: '40px' }}>
+                <div 
+                  className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                  style={{ width: '40px', height: '40px' }}
+                >
                   <span className="text-white fw-bold">
                     {skill.instructor_name ? skill.instructor_name.charAt(0).toUpperCase() : '?'}
                   </span>
@@ -165,6 +179,7 @@ const SingleSkill = () => {
                 </div>
               </div>
 
+              {/* ✅ KEPT: Placeholder ratings and students */}
               <div className="d-flex align-items-center mb-3">
                 <span className="text-warning me-2">⭐</span>
                 <span className="me-3">
@@ -174,6 +189,18 @@ const SingleSkill = () => {
                 <span className="me-2">👥</span>
                 <span>{skill.students || Math.floor(Math.random() * 100) + 1} students</span>
               </div>
+
+              {/* ✅ ADDED: Actual skill data from backend */}
+              {(skill.proficiency || skill.years_experience) && (
+                <div className="d-flex align-items-center gap-4 text-muted">
+                  {skill.proficiency && (
+                    <small>Proficiency: {skill.proficiency}/5</small>
+                  )}
+                  {skill.years_experience && (
+                    <small>Experience: {skill.years_experience} year{skill.years_experience !== 1 ? 's' : ''}</small>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mb-4">
@@ -181,7 +208,7 @@ const SingleSkill = () => {
               <p className="lead">{skill.description || 'No description available.'}</p>
             </div>
 
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 flex-wrap">
               {!isOwnSkill && (
                 <button className="btn btn-primary" onClick={handleContact}>
                   💬 Contact Instructor
@@ -204,14 +231,24 @@ const SingleSkill = () => {
         {/* Additional sections can be added here */}
         <div className="row mt-5">
           <div className="col-12">
-            <h3 className="mb-4">What You'll Learn</h3>
+            <h3 className="mb-4">Skill Details</h3>
             <div className="card">
               <div className="card-body">
-                <p className="text-muted">
-                  Detailed curriculum information would go here. This could include modules, lessons, 
-                  and learning objectives for this skill.
-                </p>
-                {/* You can expand this section with actual curriculum data when available */}
+                <div className="row">
+                  <div className="col-md-6">
+                    <h5>About this Skill</h5>
+                    <p className="text-muted">
+                      {skill.description || 'No additional details available.'}
+                    </p>
+                  </div>
+                  <div className="col-md-6">
+                    <h5>Instructor Information</h5>
+                    <p className="text-muted">
+                      Contact {skill.instructor_name || 'the instructor'} to arrange skill exchange sessions 
+                      and discuss learning objectives.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -15,11 +15,9 @@ const Skills = () => {
 
   // Get authentication state from context
   const { user, token } = useAuth();
-  const currentUser = user;
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!token;
 
   const handleEdit = (skill) => {
-    // Navigate to edit skill page with the skill id
     navigate(`/edit-skill/${skill.id}`);
   };
 
@@ -28,7 +26,8 @@ const Skills = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get('https://muterianc.pythonanywhere.com//api/skills');
+        // ✅ FIXED: Removed extra slash from API URL
+        const response = await axios.get('https://muterianc.pythonanywhere.com/api/skills');
         setSkills(response.data.skills || []);
       } catch (error) {
         console.error("Error fetching skills:", error);
@@ -122,12 +121,12 @@ const Skills = () => {
   );
 
   const SkillCard = ({ skill, index }) => {
-    const isOwnSkill = currentUser && skill.user_id === currentUser.id;
+    // ✅ FIXED: Better user ID comparison
+    const isOwnSkill = user?.id === skill.user_id;
 
-
-     const handleLearnMore = () => {
-    navigate(`/skill/${skill.id}`);
-     };
+    const handleLearnMore = () => {
+      navigate(`/skill/${skill.id}`);
+    };
 
     return (
       <div
@@ -154,23 +153,31 @@ const Skills = () => {
           }}
         >
           <div className="position-relative overflow-hidden">
-            <img
-              src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
-              className="card-img-top"
-              alt={skill.skill_name}
-              onError={(e) => {
-                e.target.src = "/images/placeholder.png";
-                e.target.onerror = null;
-              }}
-              style={{
-                height: '200px',
-                objectFit: 'cover',
-                transition: 'transform 0.3s ease'
-              }}
-              onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'
-              }
-            />
+            {skill.skill_photo ? (
+              <img
+                src={`https://muterianc.pythonanywhere.com/static/skills/${skill.skill_photo}`}
+                className="card-img-top"
+                alt={skill.skill_name}
+                onError={(e) => {
+                  e.target.src = "/images/placeholder.png";
+                  e.target.onerror = null;
+                }}
+                style={{
+                  height: '200px',
+                  objectFit: 'cover',
+                  transition: 'transform 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+              />
+            ) : (
+              <div 
+                className="card-img-top bg-light d-flex align-items-center justify-content-center"
+                style={{ height: '200px' }}
+              >
+                <span className="text-muted">No image</span>
+              </div>
+            )}
 
             {skill.category && (
               <span className="badge bg-primary position-absolute top-0 start-0 m-2">
@@ -178,9 +185,10 @@ const Skills = () => {
               </span>
             )}
             {skill.difficulty && (
-              <span className={`badge position-absolute top-0 end-0 m-2 ${skill.difficulty === 'beginner' ? 'bg-success' :
+              <span className={`badge position-absolute top-0 end-0 m-2 ${
+                skill.difficulty === 'beginner' ? 'bg-success' :
                 skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
-                }`}>
+              }`}>
                 {skill.difficulty}
               </span>
             )}
@@ -194,8 +202,10 @@ const Skills = () => {
             </p>
 
             <div className="d-flex align-items-center mb-3">
-              <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
-                style={{ width: '32px', height: '32px' }}>
+              <div 
+                className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
+                style={{ width: '32px', height: '32px' }}
+              >
                 <span className="text-white fw-bold" style={{ fontSize: '14px' }}>
                   {skill.instructor_name ? skill.instructor_name.charAt(0).toUpperCase() : '?'}
                 </span>
@@ -205,6 +215,7 @@ const Skills = () => {
               </small>
             </div>
 
+            {/* ✅ KEPT: Placeholder ratings, reviews, and students for now */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <span className="text-warning me-1">⭐</span>
@@ -218,8 +229,9 @@ const Skills = () => {
             </div>
 
             <div className="d-flex gap-2 mt-auto">
-              <button className="btn btn-primary flex-grow-1"
-              onClick={handleLearnMore}
+              <button 
+                className="btn btn-primary flex-grow-1"
+                onClick={handleLearnMore}
               >
                 📚 Learn More
               </button>
