@@ -154,12 +154,14 @@ const Profile = () => {
 
         setUserSkills(skillsResponse.data.skills || []);
 
-        // Fetch user posts
+        // Fetch user posts - FIX APPLIED HERE
         const postsResponse = await axios.get(
           `https://muterianc.pythonanywhere.com/api/posts/user/${userResponse.data.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setUserPosts(postsResponse.data || []);
+        
+        // ✅ FIXED: Changed from postsResponse.data to postsResponse.data.posts
+        setUserPosts(postsResponse.data.posts || []);
 
       } catch (err) {
         console.error("Auth error:", err);
