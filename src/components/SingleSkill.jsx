@@ -111,7 +111,7 @@ const SingleSkill = () => {
       <div className="h-16"></div>
 
       <div className="container my-5">
-        <button 
+        <button
           className="btn btn-outline-secondary mb-4"
           onClick={() => navigate(-1)}
         >
@@ -133,7 +133,7 @@ const SingleSkill = () => {
               />
             ) : (
               // ✅ ADDED: Proper fallback for missing images
-              <div 
+              <div
                 className="img-fluid rounded shadow bg-light d-flex align-items-center justify-content-center"
                 style={{ height: '300px', width: '100%' }}
               >
@@ -141,11 +141,11 @@ const SingleSkill = () => {
               </div>
             )}
           </div>
-          
+
           <div className="col-md-6">
             <div className="d-flex justify-content-between align-items-start mb-3">
               <h1 className="display-5 fw-bold text-primary">{skill.skill_name}</h1>
-              
+
               <div>
                 {skill.category && (
                   <span className="badge bg-primary me-2">
@@ -153,10 +153,9 @@ const SingleSkill = () => {
                   </span>
                 )}
                 {skill.difficulty && (
-                  <span className={`badge ${
-                    skill.difficulty === 'beginner' ? 'bg-success' :
-                    skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
-                  }`}>
+                  <span className={`badge ${skill.difficulty === 'beginner' ? 'bg-success' :
+                      skill.difficulty === 'intermediate' ? 'bg-warning' : 'bg-danger'
+                    }`}>
                     {skill.difficulty}
                   </span>
                 )}
@@ -165,7 +164,7 @@ const SingleSkill = () => {
 
             <div className="mb-4">
               <div className="d-flex align-items-center mb-3">
-                <div 
+                <div
                   className="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2"
                   style={{ width: '40px', height: '40px' }}
                 >
@@ -185,7 +184,7 @@ const SingleSkill = () => {
                 <span className="me-3">
                   <strong>{skill.rating || '4.5'}</strong> ({skill.reviews || Math.floor(Math.random() * 50) + 1} reviews)
                 </span>
-                
+
                 <span className="me-2">👥</span>
                 <span>{skill.students || Math.floor(Math.random() * 100) + 1} students</span>
               </div>
@@ -214,13 +213,13 @@ const SingleSkill = () => {
                   💬 Contact Instructor
                 </button>
               )}
-              
+
               {isOwnSkill && (
                 <button className="btn btn-success" onClick={handleEdit}>
                   ✏️ Edit Skill
                 </button>
               )}
-              
+
               <button className="btn btn-outline-secondary">
                 📋 Share
               </button>
@@ -244,9 +243,24 @@ const SingleSkill = () => {
                   <div className="col-md-6">
                     <h5>Instructor Information</h5>
                     <p className="text-muted">
-                      Contact {skill.instructor_name || 'the instructor'} to arrange skill exchange sessions 
+                      Contact {skill.instructor_name || 'the instructor'} to arrange skill exchange sessions
                       and discuss learning objectives.
                     </p>
+                  </div>
+                  {/* Additional sections can be added here */}
+                  <div className="row mt-5">
+                    <div className="col-12">
+                      <h3 className="mb-4">What You'll Learn</h3>
+                      <div className="card">
+                        <div className="card-body">
+                          <p className="text-muted">
+                            Detailed curriculum information would go here. This could include modules, lessons,
+                            and learning objectives for this skill.
+                          </p>
+                          {/* You can expand this section with actual curriculum data when available */}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

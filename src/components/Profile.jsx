@@ -5,6 +5,7 @@ import axios from 'axios';
 import { FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
+import CreditBalance from '../components/CreditBalance';
 
 // Simple Post Card for Profile Page
 const ProfilePostCard = ({ post, onDelete, onClick }) => {
@@ -31,7 +32,7 @@ const ProfilePostCard = ({ post, onDelete, onClick }) => {
   };
 
   return (
-    <div 
+    <div
       className="bg-white shadow rounded-lg overflow-hidden cursor-pointer transition-transform hover:scale-105"
       onClick={handleCardClick}
     >
@@ -66,8 +67,8 @@ const ProfilePostCard = ({ post, onDelete, onClick }) => {
         {/* Like and Comment Counts */}
         <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
           <div className="flex items-center">
-            <Heart 
-              className={`h-4 w-4 mr-1 ${isLiked ? 'text-red-500 fill-current' : ''}`} 
+            <Heart
+              className={`h-4 w-4 mr-1 ${isLiked ? 'text-red-500 fill-current' : ''}`}
             />
             <span>{formatCount(likeCount)}</span>
           </div>
@@ -159,7 +160,7 @@ const Profile = () => {
           `https://muterianc.pythonanywhere.com/api/posts/user/${userResponse.data.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        
+
         // ✅ FIXED: Changed from postsResponse.data to postsResponse.data.posts
         setUserPosts(postsResponse.data.posts || []);
 
@@ -227,6 +228,11 @@ const Profile = () => {
                     <h1 className="text-2xl font-bold text-gray-900">{user.username}</h1>
                     <p className="text-gray-600">{user.email}</p>
                     {user.phone && <p className="text-gray-500 mt-1">{user.phone}</p>}
+
+                    // In your Navbar.js, add this after the notification bell component:
+                    <div className="hidden sm:flex items-center">
+                      <CreditBalance size="sm" showBuyButton={false} />
+                    </div>
                   </div>
                 </div>
                 <Link
@@ -406,9 +412,9 @@ const Profile = () => {
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {userPosts.map((post) => (
-                  <ProfilePostCard 
-                    key={post.id} 
-                    post={post} 
+                  <ProfilePostCard
+                    key={post.id}
+                    post={post}
                     onDelete={handleDeletePost}
                     onClick={handlePostClick}
                   />

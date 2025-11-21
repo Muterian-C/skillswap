@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, User, Home, PlusSquare, Search, Menu, X, Bell, MessageCircle } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { useNotifications } from '../context/NotificationContext';
+import CreditBalance from '../components/CreditBalance';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
@@ -82,8 +83,8 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled
-        ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50'
-        : 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100'
+      ? 'bg-white/80 backdrop-blur-xl shadow-2xl border-b border-gray-200/50'
+      : 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100'
       }`}>
       {/* Animated gradient line at top */}
       <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 via-pink-500 to-blue-500 animate-pulse bg-[length:200%_100%]"></div>
@@ -225,6 +226,11 @@ const Navbar = () => {
                   )}
                 </div>
 
+                // In your Navbar.js, add this after the notification bell component:
+                <div className="hidden sm:flex items-center">
+                  <CreditBalance size="sm" showBuyButton={false} />
+                </div>
+
                 <div className="hidden sm:flex items-center space-x-3">
                   <div className="flex items-center space-x-3 bg-gradient-to-r from-gray-50/80 to-gray-100/80 backdrop-blur-sm rounded-2xl px-4 py-2 border border-gray-200/50 hover:shadow-lg transition-all duration-300 group">
                     <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
@@ -286,8 +292,8 @@ const Navbar = () => {
       {/* Enhanced Mobile menu */}
       {user && (
         <div className={`md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 transition-all duration-500 ease-out ${isMobileMenuOpen
-            ? 'max-h-[500px] opacity-100 shadow-2xl'
-            : 'max-h-0 opacity-0 overflow-hidden'
+          ? 'max-h-[500px] opacity-100 shadow-2xl'
+          : 'max-h-0 opacity-0 overflow-hidden'
           }`}>
           <div className="px-4 pt-3 pb-4 space-y-2">
             {[
