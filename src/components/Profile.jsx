@@ -230,7 +230,7 @@ const Profile = () => {
                     {user.phone && <p className="text-gray-500 mt-1">{user.phone}</p>}
 
                     <div className="hidden sm:flex items-center">
-                      <CreditBalance size="sm" showBuyButton={false} />
+                      <CreditBalance size="sm" showBuyButton={true} />
                     </div>
                   </div>
                 </div>
