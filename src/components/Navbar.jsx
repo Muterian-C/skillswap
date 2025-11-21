@@ -226,7 +226,8 @@ const Navbar = () => {
                   )}
                 </div>
 
-                // In your Navbar.js, add this after the notification bell component:
+                
+                
                 <div className="hidden sm:flex items-center">
                   <CreditBalance size="sm" showBuyButton={false} />
                 </div>

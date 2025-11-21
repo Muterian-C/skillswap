@@ -229,7 +229,6 @@ const Profile = () => {
                     <p className="text-gray-600">{user.email}</p>
                     {user.phone && <p className="text-gray-500 mt-1">{user.phone}</p>}
 
-                    // In your Navbar.js, add this after the notification bell component:
                     <div className="hidden sm:flex items-center">
                       <CreditBalance size="sm" showBuyButton={false} />
                     </div>
