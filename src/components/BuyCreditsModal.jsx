@@ -8,8 +8,9 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [error, setError] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [step, setStep] = useState('select-package'); // 'select-package' or 'enter-phone'
+  const [step, setStep] = useState('select-package');
 
   const creditPackages = [
     { id: 1, credits: 50, price: 500, description: 'Starter Pack' },
@@ -20,42 +21,84 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
 
   const handlePackageSelect = (pkg) => {
     setSelectedPackage(pkg);
+    setError(null);
     setStep('enter-phone');
   };
 
   const handlePayment = async () => {
-    if (!selectedPackage || !phoneNumber) return;
+    if (!selectedPackage || !phoneNumber.trim()) {
+      setError('Please enter a phone number');
+      return;
+    }
 
     try {
       setLoading(true);
+      setError(null);
 
-      // Validate phone number
-      const formattedPhone = phoneNumber.startsWith('0') ? '254' + phoneNumber.slice(1) : phoneNumber;
+      // Validate and format phone number
+      let formattedPhone = phoneNumber.trim();
       
+      // Remove any spaces, dashes, or plus signs
+      formattedPhone = formattedPhone.replace(/[\s\-+]/g, '');
+
+      // Add country code if starting with 0
+      if (formattedPhone.startsWith('0')) {
+        formattedPhone = '254' + formattedPhone.slice(1);
+      } else if (!formattedPhone.startsWith('254')) {
+        formattedPhone = '254' + formattedPhone;
+      }
+
+      console.log('📞 Formatted phone:', formattedPhone);
+      console.log('📦 Package:', selectedPackage);
+
+      // Validate phone number format
       if (!formattedPhone.startsWith('254') || formattedPhone.length !== 12) {
-        alert('Please enter a valid Kenyan phone number (e.g., 0712345678)');
+        setError(`Invalid phone number format. Got: ${formattedPhone} (length: ${formattedPhone.length})`);
         setLoading(false);
         return;
       }
 
+      // Prepare payload - IMPORTANT: send credits as INTEGER
+      const payload = {
+        phone: formattedPhone,
+        credits: parseInt(selectedPackage.credits, 10) // Ensure it's an integer
+      };
+
+      console.log('🚀 Sending payload:', payload);
+      console.log('🔐 Token exists:', !!token);
+
       // Call M-Pesa STK Push endpoint
       const response = await axios.post(
         'https://muterianc.pythonanywhere.com/api/mpesa/stkpush',
+        payload,
         { 
-          phone: phoneNumber,
-          credits: selectedPackage.credits 
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
 
+      console.log('✅ STK Push Response:', response.data);
+
       if (response.data.success) {
-        // Start polling for payment status
         const checkoutRequestId = response.data.checkout_request_id;
-        await pollPaymentStatus(checkoutRequestId);
+        console.log('🔖 CheckoutRequestID:', checkoutRequestId);
+        
+        // Wait a bit before starting to poll
+        setTimeout(() => {
+          pollPaymentStatus(checkoutRequestId);
+        }, 2000);
+      } else {
+        setError(response.data.details || response.data.error || 'Payment initiation failed');
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      alert(error.response?.data?.error || 'Failed to initiate payment. Please try again.');
+      console.error('❌ Payment error:', error);
+      const errorMessage = error.response?.data?.details || 
+                          error.response?.data?.error || 
+                          error.message ||
+                          'Failed to initiate payment';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,56 +107,94 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
   const pollPaymentStatus = async (checkoutRequestId) => {
     try {
       let attempts = 0;
-      const maxAttempts = 30;
+      const maxAttempts = 30; // 90 seconds (30 * 3 seconds)
       
       const checkStatus = async () => {
         attempts++;
-        const response = await axios.get(
-          `https://muterianc.pythonanywhere.com/api/mpesa/status/${checkoutRequestId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        if (response.data.status === 'completed') {
-          setPurchaseSuccess(true);
-          // Refresh credits
-          const creditsResponse = await axios.get(
-            'https://muterianc.pythonanywhere.com/api/user/credits',
+        console.log(`🔄 Polling status (attempt ${attempts}/${maxAttempts})`);
+
+        try {
+          const response = await axios.get(
+            `https://muterianc.pythonanywhere.com/api/mpesa/status/${checkoutRequestId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           
-          setTimeout(() => {
-            onClose();
-            setPurchaseSuccess(false);
-            setSelectedPackage(null);
-            setPhoneNumber('');
-            setStep('select-package');
-            if (onCreditsPurchased) {
-              onCreditsPurchased(creditsResponse.data.credits);
-            }
-          }, 3000);
-          return true;
-        } else if (response.data.status === 'failed') {
-          alert('Payment failed. Please try again.');
-          return true;
-        } else if (attempts >= maxAttempts) {
-          alert('Payment timeout. Please check your M-Pesa messages.');
-          return true;
-        } else {
+          console.log('📊 Status response:', response.data);
+
+          if (response.data.success || response.data.status === 'completed') {
+            console.log('✅ Payment completed!');
+            setPurchaseSuccess(true);
+
+            // Refresh credits after a short delay
+            setTimeout(async () => {
+              try {
+                const creditsResponse = await axios.get(
+                  'https://muterianc.pythonanywhere.com/api/user/credits',
+                  { headers: { Authorization: `Bearer ${token}` } }
+                );
+                
+                if (onCreditsPurchased) {
+                  onCreditsPurchased(creditsResponse.data.credits);
+                }
+              } catch (e) {
+                console.warn('Could not fetch updated credits:', e);
+              }
+
+              // Close modal after 2 seconds
+              setTimeout(() => {
+                onClose();
+                resetModal();
+              }, 2000);
+            }, 500);
+            return;
+          } 
+          
+          if (response.data.status === 'failed') {
+            setError('Payment was cancelled or failed. Please try again.');
+            return;
+          }
+          
+          if (attempts >= maxAttempts) {
+            setError('Payment timeout. Please check your M-Pesa app and try again.');
+            return;
+          }
+
+          // Keep polling
           setTimeout(checkStatus, 3000);
-          return false;
+        } catch (pollError) {
+          console.error('Poll error:', pollError);
+          if (attempts >= maxAttempts) {
+            setError('Could not verify payment. Check your M-Pesa app.');
+          } else {
+            setTimeout(checkStatus, 3000);
+          }
         }
       };
       
-      await checkStatus();
+      checkStatus();
     } catch (error) {
       console.error('Status check error:', error);
-      alert('Error checking payment status.');
+      setError('Error checking payment status. Please check M-Pesa app.');
     }
+  };
+
+  const resetModal = () => {
+    setSelectedPackage(null);
+    setPhoneNumber('');
+    setStep('select-package');
+    setError(null);
+    setPurchaseSuccess(false);
   };
 
   const handleBack = () => {
     setStep('select-package');
     setPhoneNumber('');
+    setError(null);
+  };
+
+  const handleClose = () => {
+    resetModal();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -158,12 +239,19 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="h-6 w-6 text-gray-500" />
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
 
         {step === 'select-package' ? (
           <>
@@ -209,7 +297,7 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
             {/* Action Buttons */}
             <div className="flex space-x-3">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -247,7 +335,8 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
                     placeholder="e.g., 0712345678"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={loading}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                   />
                   <p className="text-sm text-gray-500 mt-1">
                     Enter your M-Pesa registered phone number
@@ -269,13 +358,14 @@ const BuyCreditsModal = ({ isOpen, onClose, onCreditsPurchased }) => {
             <div className="flex space-x-3">
               <button
                 onClick={handleBack}
-                className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:bg-gray-100"
               >
                 Back
               </button>
               <button
                 onClick={handlePayment}
-                disabled={!phoneNumber || loading}
+                disabled={!phoneNumber.trim() || loading}
                 className="flex-1 py-3 px-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
               >
                 {loading ? (
