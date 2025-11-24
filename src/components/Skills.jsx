@@ -192,10 +192,22 @@ const Skills = () => {
                 {skill.difficulty}
               </span>
             )}
+            
+            {/* PRICE BADGE ON IMAGE - NEW */}
+            {skill.price > 0 ? (
+              <span className="badge bg-success position-absolute bottom-0 start-0 m-2 fs-6">
+                {skill.price} Credits
+              </span>
+            ) : (
+              <span className="badge bg-secondary position-absolute bottom-0 start-0 m-2 fs-6">
+                Free
+              </span>
+            )}
           </div>
 
           <div className="card-body d-flex flex-column">
             <h5 className="card-title text-primary fw-bold mb-2">{skill.skill_name}</h5>
+            
             <p className="card-text text-muted flex-grow-1">
               {skill.description?.slice(0, 120)}
               {skill.description?.length > 120 ? '...' : ''}
@@ -233,7 +245,7 @@ const Skills = () => {
                 className="btn btn-primary flex-grow-1"
                 onClick={handleLearnMore}
               >
-                📚 Learn More
+                {skill.price > 0 ? '💰 Learn More' : '📚 Learn More'}
               </button>
 
               {!isOwnSkill && (
@@ -324,6 +336,12 @@ const Skills = () => {
           {!loading && !error && (
             <div className="text-muted">
               {filteredSkills.length} skill{filteredSkills.length !== 1 ? 's' : ''} found
+              {/* PRICE SUMMARY - NEW */}
+              {filteredSkills.length > 0 && (
+                <span className="ms-2">
+                  • {filteredSkills.filter(s => s.price > 0).length} premium • {filteredSkills.filter(s => !s.price || s.price === 0).length} free
+                </span>
+              )}
             </div>
           )}
         </div>

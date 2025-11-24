@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Star, Edit, Trash2, LogOut, PlusCircle, Heart, MessageCircle } from 'lucide-react';
+import { User, Star, Edit, Trash2, LogOut, PlusCircle, Heart, MessageCircle, Coins, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import { FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
@@ -111,6 +111,10 @@ const Profile = () => {
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
   const [userPosts, setUserPosts] = useState([]);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [completedExchanges, setCompletedExchanges] = useState(0);
+  const [pendingExchanges, setPendingExchanges] = useState(0);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
@@ -155,14 +159,16 @@ const Profile = () => {
 
         setUserSkills(skillsResponse.data.skills || []);
 
-        // Fetch user posts - FIX APPLIED HERE
+        // Fetch user posts
         const postsResponse = await axios.get(
           `https://muterianc.pythonanywhere.com/api/posts/user/${userResponse.data.user.id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // ✅ FIXED: Changed from postsResponse.data to postsResponse.data.posts
         setUserPosts(postsResponse.data.posts || []);
+
+        // Fetch earnings and transaction data
+        await fetchEarningsData();
 
       } catch (err) {
         console.error("Auth error:", err);
@@ -172,6 +178,40 @@ const Profile = () => {
       } finally {
         setLoading(false);
       }
+    };
+
+    const fetchEarningsData = async () => {
+      try {
+        // Get earnings summary
+        const earningsResponse = await axios.get(
+          'https://muterianc.pythonanywhere.com/api/user/earnings',
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (earningsResponse.data.success) {
+          setTotalEarnings(earningsResponse.data.total_earnings || 0);
+          setRecentTransactions(earningsResponse.data.recent_transactions || []);
+        }
+
+        // Calculate exchange stats from user skills and transactions
+        calculateExchangeStats();
+
+      } catch (error) {
+        console.error("Error fetching earnings data:", error);
+        // Set default values if API fails
+        setTotalEarnings(0);
+        setRecentTransactions([]);
+      }
+    };
+
+    const calculateExchangeStats = () => {
+      // For now, we'll calculate basic stats from available data
+      // In a real app, you'd get this from a dedicated endpoint
+      const completed = userSkills.reduce((acc, skill) => acc + (skill.purchase_count || 0), 0);
+      const pending = userSkills.reduce((acc, skill) => acc + (skill.pending_requests || 0), 0);
+      
+      setCompletedExchanges(completed);
+      setPendingExchanges(pending);
     };
 
     fetchData();
@@ -234,20 +274,62 @@ const Profile = () => {
                     </div>
                   </div>
                 </div>
-                <Link
-                  to="/createpost"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Create Post
-                </Link>
-                <button
-                  onClick={logout}
-                  className="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
+                  <Link
+                    to="/createpost"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create Post
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Earnings Dashboard - NEW SECTION */}
+          <div className="mt-8">
+            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg text-white p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">💰 Your Earnings</h2>
+                  <p className="text-green-100">Track your skill sales and earnings</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">+{totalEarnings.toFixed(2)} Credits</div>
+                  <div className="text-green-200">Total Earned</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <CheckCircle className="h-6 w-6 text-green-200" />
+                  </div>
+                  <div className="text-2xl font-bold">{completedExchanges}</div>
+                  <div className="text-green-100 text-sm">Completed Sales</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <Clock className="h-6 w-6 text-yellow-200" />
+                  </div>
+                  <div className="text-2xl font-bold">{pendingExchanges}</div>
+                  <div className="text-green-100 text-sm">Pending Requests</div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg p-4 text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <TrendingUp className="h-6 w-6 text-blue-200" />
+                  </div>
+                  <div className="text-2xl font-bold">{userSkills.length}</div>
+                  <div className="text-green-100 text-sm">Skills Listed</div>
+                </div>
               </div>
             </div>
           </div>
@@ -337,6 +419,25 @@ const Profile = () => {
                           </span>
                         </div>
                       </div>
+
+                      {/* PRICE DISPLAY - NEW */}
+                      <div className="flex justify-between items-center mt-3 p-2 bg-gray-50 rounded">
+                        <span className={`text-lg font-bold ${
+                          skill.price > 0 ? 'text-green-600' : 'text-gray-500'
+                        }`}>
+                          {skill.price > 0 ? `${skill.price} Credits` : 'Free'}
+                        </span>
+                        {skill.price > 0 ? (
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            💰 Premium
+                          </span>
+                        ) : (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                            🎁 Free
+                          </span>
+                        )}
+                      </div>
+
                       <div className="mt-4 flex items-center">
                         <div className="flex">
                           {[1, 2, 3, 4, 5].map((rating) => (
@@ -418,6 +519,68 @@ const Profile = () => {
                     onClick={handlePostClick}
                   />
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Transaction History - NEW SECTION */}
+          <div className="mt-12">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Transactions</h2>
+              <button
+                onClick={() => {/* Navigate to full transactions page */}}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                View All
+              </button>
+            </div>
+
+            {recentTransactions.length === 0 ? (
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="px-6 py-12 text-center">
+                  <div className="mx-auto h-12 w-12 text-gray-400">
+                    <Coins className="h-full w-full" />
+                  </div>
+                  <h3 className="mt-2 text-lg font-medium text-gray-900">No transactions yet</h3>
+                  <p className="mt-1 text-gray-500">Your transaction history will appear here.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Amount
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {recentTransactions.map((transaction, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {transaction.description}
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                            transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.amount > 0 ? '+' : ''}{transaction.amount} Credits
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(transaction.created_at).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
