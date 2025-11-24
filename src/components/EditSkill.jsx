@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import Navbar from './Navbar';
-import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight } from 'lucide-react';
+import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight, Coins, Gift } from 'lucide-react';
 
 const EditSkill = () => {
   const { id } = useParams();
@@ -17,7 +17,8 @@ const EditSkill = () => {
     difficulty: 'Beginner',
     proficiency: 1,
     years_experience: 0,
-    skill_photo: null
+    skill_photo: null,
+    price: 0 // NEW: Add price field
   });
 
   const [preview, setPreview] = useState('');
@@ -43,7 +44,7 @@ const EditSkill = () => {
   // Calculate progress based on form completion
   const calculateProgress = useCallback(() => {
     let completedFields = 0;
-    const totalFields = 6; // skill_name, category, description, difficulty, proficiency, years_experience
+    const totalFields = 7; // Now includes price field
 
     if (skillData.skill_name.trim()) completedFields++;
     if (skillData.category) completedFields++;
@@ -51,6 +52,7 @@ const EditSkill = () => {
     if (skillData.difficulty) completedFields++;
     if (skillData.proficiency > 0) completedFields++;
     if (skillData.years_experience >= 0) completedFields++;
+    if (skillData.price >= 0) completedFields++; // NEW: Price field
 
     const progressPercentage = Math.round((completedFields / totalFields) * 100);
     setProgress(progressPercentage);
@@ -329,6 +331,58 @@ const EditSkill = () => {
                   </div>
                 </div>
 
+                {/* Price Field - NEW */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Price (Credits) <span className="text-gray-400">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      name="price"
+                      type="number"
+                      min="0"
+                      step="1"
+                      className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
+                      value={skillData.price}
+                      onChange={handleChange}
+                      placeholder="0 for free skill"
+                    />
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        Credits
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Set to 0 for free skills, or enter credit amount for premium skills
+                  </p>
+                  
+                  {/* Price Preview - NEW */}
+                  {skillData.price > 0 && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-700">
+                        <Coins className="w-4 h-4" />
+                        <span className="text-sm font-medium">Premium Skill: {skillData.price} Credits</span>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        Students will pay {skillData.price} credits to learn this skill
+                      </p>
+                    </div>
+                  )}
+                  
+                  {skillData.price === 0 && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-blue-700">
+                        <Gift className="w-4 h-4" />
+                        <span className="text-sm font-medium">Free Skill</span>
+                      </div>
+                      <p className="text-xs text-blue-600 mt-1">
+                        This skill will be available to everyone for free
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700">
                     Description <span className="text-red-500">*</span>
@@ -471,6 +525,20 @@ const EditSkill = () => {
                       />
                     </label>
                   )}
+                </div>
+              </div>
+
+              {/* Pricing Guide - NEW */}
+              <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                  <Coins className="w-4 h-4" />
+                  💡 Pricing Guide
+                </h4>
+                <div className="text-xs text-yellow-700 space-y-1">
+                  <p><strong>Free (0 credits):</strong> Great for building reputation and attracting students</p>
+                  <p><strong>10-50 credits:</strong> Beginner to intermediate skills, single sessions</p>
+                  <p><strong>50-100 credits:</strong> Advanced or specialized skills, multiple sessions</p>
+                  <p><strong>100+ credits:</strong> Expert-level, high-demand, or comprehensive training</p>
                 </div>
               </div>
 
