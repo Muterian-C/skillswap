@@ -23,6 +23,7 @@ import SingleSkill from './components/SingleSkill';
 import ResetPassword from "./components/ResetPassword";
 import ForgotPassword from "./components/ForgotPassword";
 import GoogleCallback from "./components/GoogleCallback";
+import PurchaseHistory from "./components/PurchaseHistory";
 
 
 function App() {
@@ -72,6 +73,14 @@ function App() {
 
 
               <Route path="/skills" element={<Skills />} />
+              <Route 
+                path="/purchases" 
+                element={
+                  <ProtectedRoute>
+                    <PurchaseHistory />
+                  </ProtectedRoute>
+                } 
+              />
               <Route
                 path="/profile"
                 element={
