@@ -1,13 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight } from 'lucide-react';
+import { Star, Upload, X, CheckCircle, AlertCircle, Loader, Sparkles, ChevronRight, Coins, Gift } from 'lucide-react';
 import axios from "axios";
 import Navbar from './Navbar';
 import { useAuth } from '../context/AuthContext'; // ⬅️ use AuthContext
 
 const AddSkill = () => {
   // Mock user for demo
-  const { user } = useAuth(); // gets the logged-in user from AuthContext
-
+  const { user, token } = useAuth(); // gets the logged-in user from AuthContext
 
   const [form, setForm] = useState({
     skill_name: '',
@@ -16,7 +15,8 @@ const AddSkill = () => {
     difficulty: 'Beginner',
     proficiency: 3,
     years_experience: 1,
-    skill_photo: null
+    skill_photo: null,
+    price: 0 // NEW: Add price field
   });
 
   const [preview, setPreview] = useState('');
@@ -41,7 +41,7 @@ const AddSkill = () => {
   // Calculate progress based on form completion
   const calculateProgress = useCallback(() => {
     let completedFields = 0;
-    const totalFields = 6; // skill_name, category, description, difficulty, proficiency, years_experience
+    const totalFields = 7; // Now includes price field
 
     if (form.skill_name.trim()) completedFields++;
     if (form.category) completedFields++;
@@ -49,6 +49,7 @@ const AddSkill = () => {
     if (form.difficulty) completedFields++;
     if (form.proficiency > 0) completedFields++;
     if (form.years_experience >= 0) completedFields++;
+    if (form.price >= 0) completedFields++; // NEW: Price field
 
     const progressPercentage = Math.round((completedFields / totalFields) * 100);
     setProgress(progressPercentage);
@@ -137,17 +138,22 @@ const AddSkill = () => {
       formData.append('difficulty', form.difficulty);
       formData.append('proficiency', form.proficiency);
       formData.append('years_experience', form.years_experience);
+      formData.append('price', form.price); // NEW: Add price to form data
       if (form.skill_photo) {
         formData.append('skill_photo', form.skill_photo);
       }
 
-      // Simulate API call with delay
+      // FIXED: Removed extra slash from API URL
       const res = await axios.post(
-        "https://muterianc.pythonanywhere.com//api/add_skill", // replace with your backend URL
+        "https://muterianc.pythonanywhere.com/api/add_skill",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { 
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`
+          } 
+        }
       );
-
 
       setStatus({ success: 'Skill added successfully! 🎉' });
 
@@ -159,11 +165,13 @@ const AddSkill = () => {
         difficulty: 'Beginner',
         proficiency: 3,
         years_experience: 1,
-        skill_photo: null
+        skill_photo: null,
+        price: 0 // NEW: Reset price field
       });
       setPreview('');
       setProgress(0);
     } catch (err) {
+      console.error("Error adding skill:", err);
       setStatus({ error: 'Failed to add skill. Please try again.' });
     } finally {
       setIsSubmitting(false);
@@ -185,7 +193,6 @@ const AddSkill = () => {
   };
 
   return (
-
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8 px-4">
       <Navbar />
 
@@ -304,6 +311,58 @@ const AddSkill = () => {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Price Field - NEW */}
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Price (Credits) <span className="text-gray-400">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="1"
+                    className="w-full px-4 py-3 bg-white/50 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-300"
+                    value={form.price}
+                    onChange={handleChange}
+                    placeholder="0 for free skill"
+                  />
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      Credits
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Set to 0 for free skills, or enter credit amount for premium skills
+                </p>
+                
+                {/* Price Preview - NEW */}
+                {form.price > 0 && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-700">
+                      <Coins className="w-4 h-4" />
+                      <span className="text-sm font-medium">Premium Skill: {form.price} Credits</span>
+                    </div>
+                    <p className="text-xs text-green-600 mt-1">
+                      Students will pay {form.price} credits to learn this skill
+                    </p>
+                  </div>
+                )}
+                
+                {form.price === 0 && (
+                  <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-700">
+                      <Gift className="w-4 h-4" />
+                      <span className="text-sm font-medium">Free Skill</span>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">
+                      This skill will be available to everyone for free
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -448,6 +507,20 @@ const AddSkill = () => {
                     />
                   </label>
                 )}
+              </div>
+            </div>
+
+            {/* Pricing Guide - NEW */}
+            <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                <Coins className="w-4 h-4" />
+                💡 Pricing Guide
+              </h4>
+              <div className="text-xs text-yellow-700 space-y-1">
+                <p><strong>Free (0 credits):</strong> Great for building reputation and attracting students</p>
+                <p><strong>10-50 credits:</strong> Beginner to intermediate skills, single sessions</p>
+                <p><strong>50-100 credits:</strong> Advanced or specialized skills, multiple sessions</p>
+                <p><strong>100+ credits:</strong> Expert-level, high-demand, or comprehensive training</p>
               </div>
             </div>
 
